@@ -38,7 +38,7 @@ q(:,1)=[0;0;0;0];   %Initial conditions
 for i=1:length(t)-1
     q_dot=vehicle(q(:,i),u(:,i));
     q(:,i+1)=q(:,i)+q_dot*dt;
-    v_l(:,i)=q_dot(1:2);            %Save the landig pad velocity vector
+    v_t(:,i)=q_dot(1:2);            %Save the target velocity vector
 end
 
 %% Plot
