@@ -32,10 +32,13 @@ u(1,901:1001)=0;
 
 % Descrete integration
 q=zeros(4,length(t));
+v_l=zeros(2,length(t));
 q(:,1)=[0;0;0;0];   %Initial conditions
 
 for i=1:length(t)-1
-    q(:,i+1)=q(:,i)+vehicle(q(:,i),u(:,i))*dt;
+    q_dot=vehicle(q(:,i),u(:,i));
+    q(:,i+1)=q(:,i)+q_dot*dt;
+    v_l(:,i)=q_dot(1:2);            %Save the landig pad velocity vector
 end
 
 %% Plot
@@ -57,6 +60,7 @@ end
 
 function q_dot = vehicle(q,u)
 % Rolling without slippering kinematic car
+% q=[x;y;theta,phi]
     d=2.5/3;
     q_dot=[0;0;0;1]*u(1)+[cos(q(3)); sin(q(3)); 1/d*tan(q(4));0]*u(2);
 end
