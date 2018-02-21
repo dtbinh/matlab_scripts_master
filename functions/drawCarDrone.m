@@ -6,7 +6,7 @@ classdef drawCarDrone < handle
         Uav = gobjects(1,1);
         Angles = [0,0]
         Position = [0, 0;0, 0];
-        AxisLengths = [10 10];
+        AxisLengths = [200 200];
     end
     methods
         function obj = drawCarDrone()
@@ -14,7 +14,7 @@ classdef drawCarDrone < handle
             obj.updateFigure();
         end
         function setPose(obj,poseCar,poseUav)
-            obj.Angles(1)=poseCar(3);
+            obj.Angles(1)=poseCar(3)-pi/2;
             obj.Position(1,:)=poseCar(1:2);
             
             obj.Angles(2)=poseUav(3);
@@ -28,12 +28,12 @@ classdef drawCarDrone < handle
     methods(Access=private)
         function drawCar(obj,parent,length,color)
             body=rectangle('Parent',parent);
-            body.Position = [-length/4, -length/2, length/2, length];
+            body.Position = [-length/4, -length/6, length/2, length];
             body.FaceColor = 'none';
             body.EdgeColor = color;
 
             fro=rectangle('Parent',parent);
-            fro.Position = [-length/4, length/6, length/2, length/3];
+            fro.Position = [-length/4, length/2, length/2, length/3];
             fro.FaceColor = color;
             fro.EdgeColor = 'none';
         end
@@ -51,7 +51,7 @@ classdef drawCarDrone < handle
         function drawObjects(obj)
              fig=figure;
              colorCar='b';
-             lengthCar=2.5;
+             lengthCar=10;
              colorUav='r';
              lengthUav=.6;
              ax = axes('Parent', fig);
@@ -66,8 +66,11 @@ classdef drawCarDrone < handle
              
              % Init axes
              ax.DataAspectRatio = [1,1,1];
-             ax.XLim = [-2 obj.AxisLengths(1)];
-             ax.YLim = [-2 obj.AxisLengths(1)];
+             %ax.XLim = [-2 obj.AxisLengths(1)];
+             %ax.YLim = [-2 obj.AxisLengths(1)];
+             
+             ax.XLim = [0 200];
+             ax.YLim = [-300 100];
         end
         function updateFigure(obj)
             carPos=obj.Position(1,:);

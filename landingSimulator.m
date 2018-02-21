@@ -12,7 +12,7 @@ u=zeros(2,length(t));
 u(2,1:100)=0:.1:10-.1;
 %Constant vel
 u(2,101:900)=10;
-%Accelerate down to 10m/s
+%Accelerate down to 0m/s
 u(2,901:1001)=10:-.1:0;
 
 % Driving straight forward
@@ -43,18 +43,20 @@ end
 %plot(q(1,:),q(2,:))
 %plot(t,q(4,:))
 %plot(t,q(3,:))
+
+%% Run real time plotting
 p = drawCarDrone();
+speed=4;
 
-%for i=1:length(t)
-%    p.
+for i=1:length(t)
+    p.setPose(q(:,i),[0,0,0,0]);
+    pause(dt/speed);
+end
 
-
+%% Functions
 
 function q_dot = vehicle(q,u)
+% Rolling without slippering kinematic car
     d=2.5/3;
     q_dot=[0;0;0;1]*u(1)+[cos(q(3)); sin(q(3)); 1/d*tan(q(4));0]*u(2);
 end
-
-
-
-
