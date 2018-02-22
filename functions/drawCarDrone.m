@@ -39,21 +39,22 @@ classdef drawCarDrone < handle
         end
         function drawUav(obj,parent,length,color)
             body=rectangle('Parent',parent);
+            body.Curvature = [1 1];
             body.Position = [-length/2, -length/2, length, length];
-            body.FaceColor = 'none';
-            body.EdgeColor = color;
+            body.FaceColor = color;
+            body.EdgeColor = 'none';
 
-            fro=rectangle('Parent',parent);
-            fro.Position = [-length/6, length/6, length/3, length/3];
-            fro.FaceColor = color;
-            fro.EdgeColor = 'none';
+            %fro=rectangle('Parent',parent);
+            %fro.Position = [-length/6, length/6, length/3, length/3];
+            %fro.FaceColor = color;
+            %fro.EdgeColor = 'none';
         end
         function drawObjects(obj)
              fig=figure;
              colorCar='b';
-             lengthCar=10;
+             lengthCar=12;
              colorUav='r';
-             lengthUav=.6;
+             lengthUav=5;
              ax = axes('Parent', fig);
              
              %Create the transforms
@@ -69,7 +70,7 @@ classdef drawCarDrone < handle
              %ax.XLim = [-2 obj.AxisLengths(1)];
              %ax.YLim = [-2 obj.AxisLengths(1)];
              
-             ax.XLim = [0 200];
+             ax.XLim = [-50 250];
              ax.YLim = [-300 100];
         end
         function updateFigure(obj)
