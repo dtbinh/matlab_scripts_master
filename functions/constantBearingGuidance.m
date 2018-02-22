@@ -6,7 +6,9 @@ function v_d = constantBearingGuidance(p_c,p_t,v_t,v_c_max,dp)
 %   v_c_max -> maxs vraft velocity
 %   dp -> 
     p_d=p_c-p_t;    %Diff
+    
+    % Debug:    
     K=v_c_max*norm(p_d)/sqrt(p_d'*p_d+dp^2);
-    v_a=-K*p_d/norm(p_d);
+    v_a=-K*p_d/(norm(p_d)+0.1);
     v_d=v_t+v_a;
 end
