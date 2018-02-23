@@ -59,7 +59,7 @@ end
 
 
 %% Plot
-plot(t,v_u)
+%plot(t,v_u)
 
 %% Run real time plotting
 p = drawCarDrone();
@@ -111,3 +111,17 @@ function q_dot = quadcopter(q,v_d,kp)
     q_dot(1:2,1)=q(3:4);
     q_dot(3:4,1)=f/m;
 end
+
+function p_n = dfsdf (t,t_0, psi_0,r,v_b,p_n_0)
+    p_n = p_n_0 + R(psi_0-r*t_0)*(A(r*t)-A(r*t_0))*v_b;
+
+    function A = A_mat(x)
+        A=[sin(x), cos(x);-cos(x), sin(x)];
+    end
+    function R = R_mat()
+        R=[cos(x), -sin(x);sin(x), cos(x)];
+    end
+end
+
+
+
