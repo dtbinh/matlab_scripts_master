@@ -1,4 +1,5 @@
 clear all
+clc
 addpath('./functions/')
 
 N = 30;
@@ -24,12 +25,26 @@ end
 
 %% Define the dynamics and control parameters
 A = eye(2);
-B = [eye(2),-eye(2)]*dt;
-Q = diag([1,1]);
-R = 1*diag([0,0,1,1]);
-x0 = x_l(1:2,1)-x_u(1:2,1);
+%B = [eye(2),-eye(2)]*dt;
+B = eye(2)*dt;
+Q = 3*diag([1,1]);
+%R = 1*diag([0,0,1,1]);
+R = 1*diag([1,1]);
+x0 = x_u(1:2,1);
 mx = size(A,1);
 mu = size(B,2);
+
+%% Boundaries on states
+xl = -inf*ones(mx,1);       % Lower bounds on states
+xu = inf*ones(mx,1);        % Upper bounds on states
+
+%% Boundries on control input
+v_u_max=10;     %m/s
+ul = -v_u_max*ones(mx,1);       % Lower bounds on control input
+uu = v_u_max*ones(mx,1);       % Upper bounds on control input
+
+%% Generate constraints on measurements and inputs
+[vlb,vub] = genBegr2(N,N,xl,xu,ul,uu);
 
 %% Generate matrices for quadprog
 G = blkdiag(kron(eye(N), Q), kron(eye(N), R));
@@ -38,17 +53,22 @@ beq = zeros(mx*N,1);
 beq(1:mx) = A*x0;
 
 %% Solve the optimization problem
-z = quadprog(G, [], [], [], Aeq, beq);
+z = quadprog(G, [], [], [], Aeq, beq, vlb, vub);
 
 %% Save the data from the solution
-k=1;
-for i=1:mx+mu:(mx+mu)*N
+k=2;
+% Get the x vectors
+for i=1:mx:mx*N+1-mx
     % Pos UAV
-    x_u(1:2,k)=x_l(1:2,k)-z(i:i+mx-1);
-    % Vel UAV
-    x_u(3:4,k)=z(i+mx:i+mx+2-1);
-    %Vel landing pad
-    x_l(3:4,k)=z(i+mx+2:i+mx+mu-1);
+    x_u(1:2,k)=z(i:i+mx-1);
+    k=k+1;
+end
+k=2;
+% Get the u vectors
+for i=mx*N+1:mu:N*(mx+mu)+1-mu
+    % Pos UAV
+    x_u(3:4,k)=z(i:i+mu-1);
+    k=k+1;
 end
 t=0:dt:N;
 
@@ -57,7 +77,11 @@ close all
 % Pos UAV
 plot(t,x_u(1:2,:));
 legend('p_u_x','p_u_y')
-% Pos Landing pad
+% Vel UAV
 figure
-plot(t,x_l(1:2,:));
-legend('p_l_x','p_l_y')
+plot(t,x_u(3:4,:));
+legend('u_u_x','u_u_y')
+% Pos Landing pad
+%figure
+%plot(t,x_l(1:2,:));
+%legend('p_l_x','p_l_y')
