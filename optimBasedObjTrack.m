@@ -2,7 +2,7 @@ clear all
 clc
 addpath('./functions/')
 
-N = 40;
+N = 50;
 dt=1;
 
 %% Variables
@@ -41,14 +41,15 @@ xu = inf*ones(mx,1);        % Upper bounds on states
 
 %% Boundries on control input
 v_u_max=10;     %m/s
-a_u_max=4;      %m/s^2          % Max change in control input (delta u)
+a_u_max=2;      %m/s^2          % Max change in control input (delta u)
 ul = -v_u_max*ones(mx,1);       % Lower bounds on control input
 uu = v_u_max*ones(mx,1);        % Upper bounds on control input
-dul = -v_u_max*ones(mx,1);      % Lower bounds on delta u
-duu = v_u_max*ones(mx,1);       % Upper bounds on delta u
+dul = -a_u_max*dt*ones(mx,1);      % Lower bounds on delta u
+duu = a_u_max*dt*ones(mx,1);       % Upper bounds on delta u
 
-%% Generate constraints on measurements and inputs
+%% Generateu0 constraints on measurements and inputs
 [vlb,vub] = genBegr2(N,N,xl,xu,ul,uu);
+[A_delta, b_delta] = genAdelta(dul,duu,N,mx,mu,x_u(3:4,1));
 
 %% Generate matrices for quadprog
 G = blkdiag(kron(eye(N), Q), kron(eye(N), R));
@@ -57,7 +58,7 @@ beq = zeros(mx*N,1);
 beq(1:mx) = A*x0;
 
 %% Solve the optimization problem
-z = quadprog(G, [], [], [], Aeq, beq, vlb, vub);
+z = quadprog(G, [], A_delta, b_delta, Aeq, beq, vlb, vub);
 
 %% Save the data from the solution
 k=2;
@@ -89,3 +90,13 @@ legend('u_u_x','u_u_y')
 %figure
 %plot(t,x_l(1:2,:));
 %legend('p_l_x','p_l_y')
+
+
+%% Simulate the UAV and run real time plotting
+p = drawCarDrone([-50 300 -50 200]);
+speed=4;
+
+for i=1:length(t)
+    p.setPose([0,0,0],[x_u(1:2,i);0;0]);
+    pause(dt/speed);
+end

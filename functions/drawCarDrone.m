@@ -7,9 +7,11 @@ classdef drawCarDrone < handle
         Angles = [0,0]
         Position = [0, 0;0, 0];
         AxisLengths = [200 200];
+        AxisDim = [-50 250 -300 100];
     end
     methods
-        function obj = drawCarDrone()
+        function obj = drawCarDrone(axDim)
+            obj.AxisDim=axDim;
             obj.drawObjects();
             obj.updateFigure();
         end
@@ -70,8 +72,8 @@ classdef drawCarDrone < handle
              %ax.XLim = [-2 obj.AxisLengths(1)];
              %ax.YLim = [-2 obj.AxisLengths(1)];
              
-             ax.XLim = [-50 250];
-             ax.YLim = [-300 100];
+             ax.XLim = obj.AxisDim(1:2);
+             ax.YLim = obj.AxisDim(3:4);
         end
         function updateFigure(obj)
             carPos=obj.Position(1,:);

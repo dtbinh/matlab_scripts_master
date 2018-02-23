@@ -62,7 +62,7 @@ end
 %plot(t,v_u)
 
 %% Run real time plotting
-p = drawCarDrone();
+p = drawCarDrone([-50 250 -300 100]);
 speed=4;
 
 for i=1:length(t)
