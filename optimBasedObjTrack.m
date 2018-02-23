@@ -2,7 +2,7 @@ clear all
 clc
 addpath('./functions/')
 
-N = 30;
+N = 40;
 dt=1;
 
 %% Variables
@@ -30,6 +30,7 @@ B = eye(2)*dt;
 Q = 3*diag([1,1]);
 %R = 1*diag([0,0,1,1]);
 R = 1*diag([1,1]);
+R_d = 1*diag([1,1]);        % U delta
 x0 = x_u(1:2,1);
 mx = size(A,1);
 mu = size(B,2);
@@ -40,8 +41,11 @@ xu = inf*ones(mx,1);        % Upper bounds on states
 
 %% Boundries on control input
 v_u_max=10;     %m/s
+a_u_max=4;      %m/s^2          % Max change in control input (delta u)
 ul = -v_u_max*ones(mx,1);       % Lower bounds on control input
-uu = v_u_max*ones(mx,1);       % Upper bounds on control input
+uu = v_u_max*ones(mx,1);        % Upper bounds on control input
+dul = -v_u_max*ones(mx,1);      % Lower bounds on delta u
+duu = v_u_max*ones(mx,1);       % Upper bounds on delta u
 
 %% Generate constraints on measurements and inputs
 [vlb,vub] = genBegr2(N,N,xl,xu,ul,uu);
