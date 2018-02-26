@@ -1,23 +1,28 @@
 clear all
+close all
 clc
 addpath('./functions/')
 
 N = 30;
 dt=1;
 
+%% Simulate a car using the non slipping kinematic car
+%q=[x;y;theta,phi]
+%u=[u_x;u_y]
+[q_t,u_t]=carSim(0.1);
+
 %% Inital conditions
 %UAV
-xu0=[240; 150];      %Init pos
+xu0=[150; -250];      %Init pos
 uu0=[12; -7.25];     %Init vel
 
 % Landing pad
-xl0=[100; 35];       %Init pos
-ul0=[5; 5];          %Init vel
+xl0=q_t(1:2,1);
+ul0=u_t(:,1);
 
 % Init
 x0=xl0-xu0;
 u0=[ul0;uu0];
-
 
 %% Define the dynamics and control parameters
 A = eye(2);
@@ -41,21 +46,16 @@ u_u = [ul0;v_u_max*ones(2,1)];          % Upper bounds on control input
 du_l = [0;0;-a_u_max*dt*ones(2,1)];     % Lower bounds on delta u
 du_u = [0;0;a_u_max*dt*ones(2,1)];      % Upper bounds on delta u
 
-
 %% Simulate the MPC Controlled UAV
-p = drawCarDrone([-10 400 -10 300]);
+p = drawCarDrone([-50 250 -300 100]);
 speed=4;
 
 dti=.1;
-ti=0:dti:45;
+ti=0:dti:100;
 q_u=zeros(4,length(ti));
 q_u(:,1)=[xu0;uu0];     %Initial conditions
 v_c_max=10;             %Mav vel UAV in m/s
 a_max=2;                %Max acceleration for the uav given in m/s^2
-
-% Variables used for simulating the landing pad
-q_l=zeros(4,length(ti));
-q_l(:,1)=[xl0;ul0];
 
 %x_end=[0;0];
 
@@ -69,17 +69,12 @@ for i=1:length(ti)
     q_dot_u=quadcopter(q_u(:,i),u_out(3:4),8);
     q_u(:,i+1)=q_u(:,i)+q_dot_u*dti;
     
-    % Simulate Landing pad with constant linear vel (Pure integration)
-    q_l(3:4,i+1)=q_l(3:4,i);
-    q_l(1:2,i+1)=q_l(1:2,i)+q_l(3:4,i)*dti;
-    
     % Read out data from the simulation to close the loop
-    x0=q_l(1:2,i)-q_u(1:2,i);
-    u0=[ul0;q_u(3:4,i)];
+    x0=q_t(1:2,i)-q_u(1:2,i);
+    u0=[u_t(:,1);q_u(3:4,i)];
     
     %Plot simulation
-    %p.setPose([q_l(1:2,i);pi/4],[q_u(1:2,i);0]);
-    p.setPose([q_l(1:2,i);atan2(q_l(3,i),q_l(4,i))],[q_u(1:2,i);0]);
+    p.setPose(q_t(:,i),[q_u(1:2,i);0;0]);
     pause(dti/speed);
 end
 
@@ -88,9 +83,6 @@ plot(ti,q_u(1:2,1:end-1))
 figure 
 plot(ti,q_u(3:4,1:end-1))
 
-%% 
-%p = drawCarDrone([-10 10 -10 10]);
-%p.setPose([0;0;pi/4],[0;0;0]);
 %% Functions
 function q_dot = quadcopter(q,v_d,kp)
 % Pure integration and P conrolled vel controller
