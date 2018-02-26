@@ -1,4 +1,4 @@
-function [x,u,flag] = optimFunc(A,B,Q,R,x0,u0,x_l,x_u,u_l,u_u,du_l,du_u,N)
+function [x,u,flag] = optimFunc(A,B,Q,R,x0,u0,x_l,x_u,u_l,u_u,du_l,du_u,N,x_prev)
 %MPCFUNC General MPC controller
 %   Detailed explanation goes here
 
@@ -15,8 +15,15 @@ Aeq = gena2(A,B,N,mx,mu);
 beq = zeros(mx*N,1);
 beq(1:mx) = A*x0;
 
+% Options
+opt = optimoptions('quadprog','Display', 'off');
+
 % Solve the optimization problem
-[z,fval,flag] = quadprog(G, [], A_delta, b_delta, Aeq, beq, vlb, vub);
+if nargin == 14
+    [z,fval,flag] = quadprog(G, [], A_delta, b_delta, Aeq, beq, vlb, vub, x_prev, opt);
+else
+    [z,fval,flag] = quadprog(G, [], A_delta, b_delta, Aeq, beq, vlb, vub, [], opt);
+end
 
 x=zeros(mx,N);
 u=zeros(mu,N);
