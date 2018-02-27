@@ -3,13 +3,14 @@ close all
 clc
 addpath('./functions/')
 
-N = 30;
+N = 40;
 dt=1;
 
 %% Simulate a car using the non slipping kinematic car
 %q=[x;y;theta,phi]
 %u=[u_x;u_y]
-[q_t,u_t]=carSim(0.1);
+%[q_t,u_t]=carSim2(0.1);
+[q_t,u_t]=carSim2(0.1);
 
 %% Inital conditions
 %UAV
@@ -28,8 +29,8 @@ u0=[ul0;uu0];
 A = eye(2);
 B = [eye(2),-eye(2)]*dt;
 
-Q = 10*diag([1,1]);
-R = 1*diag([0,0,1,1]);
+Q = .5*diag([1,1]);
+R = 15*diag([0,0,1,1]);
 R_d = 1*diag([0,0,1,1]);        % U delta
 mx = size(A,1);
 mu = size(B,2);
@@ -39,12 +40,12 @@ x_l = -inf*ones(mx,1);       % Lower bounds on states
 x_u = inf*ones(mx,1);        % Upper bounds on states
 
 % Boundries on control input
-v_u_max=12;     %m/s
-a_u_max=4;      %m/s^2                  % Max change in control input (delta u)
-u_l = [ul0;-v_u_max*ones(2,1)];         % Lower bounds on control input
-u_u = [ul0;v_u_max*ones(2,1)];          % Upper bounds on control input
-du_l = [-inf;-inf;-a_u_max*dt*ones(2,1)];     % Lower bounds on delta u
-du_u = [inf;inf;a_u_max*dt*ones(2,1)];      % Upper bounds on delta u
+v_u_max=15;     %m/s
+a_u_max=4;      %m/s^2                          % Max change in control input (delta u)
+u_l = [ul0;-v_u_max*ones(2,1)];                 % Lower bounds on control input
+u_u = [ul0;v_u_max*ones(2,1)];                  % Upper bounds on control input
+du_l = [-inf;-inf;-a_u_max*dt*ones(2,1)];       % Lower bounds on delta u
+du_u = [inf;inf;a_u_max*dt*ones(2,1)];          % Upper bounds on delta u
 
 %% Simulate the MPC Controlled UAV 
 p = drawCarDrone([-50 250 -300 100]);
@@ -52,31 +53,38 @@ speed=4;
 
 dti=.1;
 ti=0:dti:100;
-q_u=zeros(4,length(ti));
-q_u(:,1)=[xu0;uu0];     %Initial conditions
-v_c_max=10;             %Mav vel UAV in m/s
-a_max=2;                %Max acceleration for the uav given in m/s^2
+q_u1=zeros(4,length(ti));
+q_u1(:,1)=[xu0;uu0];     %Initial conditions
+q_u2=q_u1;
 
-x_end=[0;0];
+v_c_max=15;             %Mav vel UAV in m/s
 
 for i=1:length(ti)
+    % MPC controller for UAV 1
     if mod(ti(i),dt)==0 %% Run the optimization
         u_l(1:2) = u_t(:,i);
         u_u(1:2) = u_t(:,i);
         [x_uav,u_uav]=optimFunc(A,B,Q,R,x0,u0,x_l,x_u,u_l,u_u,du_l,du_u,N);
-        u_out=u_uav(:,1);
+        u_out1=u_uav(:,1);
     end
     
-    %Simulate quadcopter
-    q_dot_u=quadcopter(q_u(:,i),u_out(3:4),8);
-    q_u(:,i+1)=q_u(:,i)+q_dot_u*dti;
+    % Constatnt bearing guidance control law for UAV 2
+    u_out2 = constantBearingGuidance(q_u2(1:2,i),q_t(1:2,i),u_t(:,i),v_c_max,2);
+    
+    %Simulate quadcopter 1
+    q_dot_u1=quadcopter(q_u1(:,i),u_out1(3:4),8);
+    q_u1(:,i+1)=q_u1(:,i)+q_dot_u1*dti;
+    
+    %Simulate quadcopter 2
+    q_dot_u2=quadcopter(q_u2(:,i),u_out2,8);
+    q_u2(:,i+1)=q_u2(:,i)+q_dot_u2*dti;
     
     % Read out data from the simulation to close the loop
-    x0=q_t(1:2,i)-q_u(1:2,i);
-    u0=[u_t(:,i);q_u(3:4,i)];
+    x0=q_t(1:2,i)-q_u1(1:2,i);
+    u0=[u_t(:,i);q_u1(3:4,i)];
     
     %Plot simulation
-    p.setPose(q_t(:,i),[q_u(1:2,i);0;0],[0;0;0;0]);
+    p.setPose(q_t(:,i),[q_u1(1:2,i);0;0],[q_u2(1:2,i);0;0]);
     pause(dti/speed);
 end
 
