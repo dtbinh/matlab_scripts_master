@@ -4,6 +4,7 @@ classdef drawCarDrone < handle
     properties (SetAccess=private)
         Car = gobjects(1,1);
         Uav = gobjects(2,1);
+        Traces = gobjects(3,1)
         Angles = zeros(3,1);
         Position = zeros(3,2);
         AxisLengths = [200 200];
@@ -25,10 +26,11 @@ classdef drawCarDrone < handle
             obj.Angles(3)=poseUav2(3);
             obj.Position(3,:)=poseUav2(1:2);
             
+            obj.addTracePoints();
+            
             obj.updateFigure();
         end
     end
-    
     % Private methods
     methods(Access=private)
         function drawCar(obj,parent,length,color)
@@ -54,6 +56,12 @@ classdef drawCarDrone < handle
             %fro.FaceColor = color;
             %fro.EdgeColor = 'none';
         end
+        function addTracePoints(obj)
+            for i = 1:3
+                obj.Traces(i).addpoints(obj.Position(i,1),obj.Position(i,2));
+            end
+        end
+        
         function drawObjects(obj)
              fig=figure;
              colorCar='b';
@@ -62,6 +70,11 @@ classdef drawCarDrone < handle
              colorUav(2)='g';
              lengthUav=5;
              ax = axes('Parent', fig);
+             
+             % Create the trace
+             obj.Traces(1) = animatedline('Parent', ax, 'Color', colorCar);
+             obj.Traces(2) = animatedline('Parent', ax, 'Color', colorUav(1));
+             obj.Traces(3) = animatedline('Parent', ax, 'Color', colorUav(2));
              
              %Create the transforms
              obj.Car(1) = hgtransform('Parent', ax);

@@ -1,21 +1,22 @@
 clear all
-close all
+%close all
 clc
 addpath('./functions/')
 
 N = 40;
 dt=1;
+simlength=50; %s
 
-%% Simulate a car using the non slipping kinematic car
+%% Simulate a car using the non slipping kinematic car method
 %q=[x;y;theta,phi]
 %u=[u_x;u_y]
 %[q_t,u_t]=carSim2(0.1);
-[q_t,u_t]=carSim2(0.1);
+[q_t,u_t]=carSim3(0.1,simlength);
 
 %% Inital conditions
 %UAV
-xu0=[150; -250];      %Init pos
-uu0=[5; -5];     %Init vel
+xu0=[150; -250];    %Init pos
+uu0=[0; -0];        %Init vel
 
 % Landing pad
 xl0=q_t(1:2,1);
@@ -29,8 +30,8 @@ u0=[ul0;uu0];
 A = eye(2);
 B = [eye(2),-eye(2)]*dt;
 
-Q = .5*diag([1,1]);
-R = 15*diag([0,0,1,1]);
+Q = 1*diag([1,1]);
+R = 20*diag([0,0,1,1]);
 R_d = 1*diag([0,0,1,1]);        % U delta
 mx = size(A,1);
 mu = size(B,2);
@@ -41,18 +42,23 @@ x_u = inf*ones(mx,1);        % Upper bounds on states
 
 % Boundries on control input
 v_u_max=15;     %m/s
-a_u_max=4;      %m/s^2                          % Max change in control input (delta u)
+a_u_max=5;      %m/s^2                          % Max change in control input (delta u)
 u_l = [ul0;-v_u_max*ones(2,1)];                 % Lower bounds on control input
 u_u = [ul0;v_u_max*ones(2,1)];                  % Upper bounds on control input
 du_l = [-inf;-inf;-a_u_max*dt*ones(2,1)];       % Lower bounds on delta u
 du_u = [inf;inf;a_u_max*dt*ones(2,1)];          % Upper bounds on delta u
 
 %% Simulate the MPC Controlled UAV 
-p = drawCarDrone([-50 250 -300 100]);
+%p = drawCarDrone([-50 250 -300 100]);
+xmin=min([q_t(1,:),xu0(1)])-50;
+xmax=max([q_t(1,:),xu0(1)])+50;
+ymin=min([q_t(2,:),xu0(2)])-50;
+ymax=max([q_t(2,:),xu0(2)])+50;
+p = drawCarDrone([xmin, xmax, ymin, ymax]);
 speed=4;
 
 dti=.1;
-ti=0:dti:100;
+ti=0:dti:simlength;
 q_u1=zeros(4,length(ti));
 q_u1(:,1)=[xu0;uu0];     %Initial conditions
 q_u2=q_u1;
@@ -69,7 +75,7 @@ for i=1:length(ti)
     end
     
     % Constatnt bearing guidance control law for UAV 2
-    u_out2 = constantBearingGuidance(q_u2(1:2,i),q_t(1:2,i),u_t(:,i),v_c_max,2);
+    u_out2 = constantBearingGuidance(q_u2(1:2,i),q_t(1:2,i),u_t(:,i),v_c_max,10);
     
     %Simulate quadcopter 1
     q_dot_u1=quadcopter(q_u1(:,i),u_out1(3:4),8);
@@ -110,8 +116,5 @@ function q_dot = quadcopter(q,v_d,kp)
     q_dot(3:4,1)=f/m;
 end
 
-%%
-% for i=1:length(ti)
-%     uu(i)=norm(u_t(:,i));
-% end
+
 
