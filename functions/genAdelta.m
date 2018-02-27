@@ -33,13 +33,13 @@ function [A,b] = genAdelta(du_l,du_u,N,mx,mu, u0)
 % The output matrix b
 %
 %     -         -
-%     |du_u+u_0 |
-%     |du_l-u_0 |
-%  b= |du_u     |
-%     |du_l     |
-%     |du_u     |
-%     |du_l     |
-%     |..       |
+%     |du_u+u_0  |
+%     |-du_l-u_0 |
+%  b= |du_u      |
+%     |-du_l     |
+%     |du_u      |
+%     |-du_l     |
+%     |..        |
 %     -        -
 %
 % [A,b] = genAdelta(du_l,du_u,N,mx,mu, u0)

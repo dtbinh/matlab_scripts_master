@@ -33,7 +33,7 @@ p = drawCarDrone([-50 250 -300 100]);
 speed=4;
 
 for i=1:length(t)
-    p.setPose(q_t(:,i),[q_u(1:2,i);0;0]);
+    p.setPose(q_t(:,i),[q_u(1:2,i);0;0],[0,0,0,0]);
     pause(dt/speed);
 end
 

@@ -3,9 +3,9 @@ classdef drawCarDrone < handle
     % Public methods
     properties (SetAccess=private)
         Car = gobjects(1,1);
-        Uav = gobjects(1,1);
-        Angles = [0,0]
-        Position = [0, 0;0, 0];
+        Uav = gobjects(2,1);
+        Angles = zeros(3,1);
+        Position = zeros(3,2);
         AxisLengths = [200 200];
         AxisDim = [-50 250 -300 100];
     end
@@ -15,12 +15,15 @@ classdef drawCarDrone < handle
             obj.drawObjects();
             obj.updateFigure();
         end
-        function setPose(obj,poseCar,poseUav)
+        function setPose(obj,poseCar,poseUav1,poseUav2)
             obj.Angles(1)=poseCar(3)-pi/2;
             obj.Position(1,:)=poseCar(1:2);
             
-            obj.Angles(2)=poseUav(3);
-            obj.Position(2,:)=poseUav(1:2);
+            obj.Angles(2)=poseUav1(3);
+            obj.Position(2,:)=poseUav1(1:2);
+            
+            obj.Angles(3)=poseUav2(3);
+            obj.Position(3,:)=poseUav2(1:2);
             
             obj.updateFigure();
         end
@@ -55,17 +58,20 @@ classdef drawCarDrone < handle
              fig=figure;
              colorCar='b';
              lengthCar=12;
-             colorUav='r';
+             colorUav(1)='r';
+             colorUav(2)='g';
              lengthUav=5;
              ax = axes('Parent', fig);
              
              %Create the transforms
              obj.Car(1) = hgtransform('Parent', ax);
              obj.Uav(1) = hgtransform('Parent', ax);
+             obj.Uav(2) = hgtransform('Parent', ax);
              
              % Create the car and UAV
              drawCar(obj,obj.Car(1),lengthCar,colorCar);
-             drawUav(obj,obj.Uav(1),lengthUav,colorUav);
+             drawUav(obj,obj.Uav(1),lengthUav,colorUav(1));
+             drawUav(obj,obj.Uav(2),lengthUav,colorUav(2));
              
              % Init axes
              ax.DataAspectRatio = [1,1,1];
@@ -77,12 +83,15 @@ classdef drawCarDrone < handle
         end
         function updateFigure(obj)
             carPos=obj.Position(1,:);
-            uavPos=obj.Position(2,:);
+            uavPos1=obj.Position(2,:);
+            uavPos2=obj.Position(3,:);
             carAng=obj.Angles(1,1);
-            uavAng=obj.Angles(1,2);
+            uavAng1=obj.Angles(2,1);
+            uavAng2=obj.Angles(3,1);
             
             obj.Car(1).Matrix = makehgtform('translate',[carPos,0],'zrotate',carAng);
-            obj.Uav(1).Matrix = makehgtform('translate',[uavPos,0],'zrotate',uavAng);
+            obj.Uav(1).Matrix = makehgtform('translate',[uavPos1,0],'zrotate',uavAng1);
+            obj.Uav(2).Matrix = makehgtform('translate',[uavPos2,0],'zrotate',uavAng2);
         end
     end
 end

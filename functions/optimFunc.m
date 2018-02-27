@@ -26,6 +26,7 @@ opt = optimoptions('quadprog','Display', 'off');
 
 % Solve the optimization problem
 [z,fval,flag] = quadprog(G, [], A_delta, b_delta, Aeq, beq, vlb, vub, [], opt);
+%[z,fval,flag] = quadprog(G, [], [], [], Aeq, beq, vlb, vub, [], opt);
 
 x=zeros(mx,N);
 u=zeros(mu,N);
@@ -42,7 +43,9 @@ if flag == 1
     for i=mx*N+1:mu:N*(mx+mu)+1-mu
         u(:,k)=z(i:i+mu-1);
         k=k+1;
-    end      
+    end
+else
+    error('No optimal solution found')
 end
 
 
