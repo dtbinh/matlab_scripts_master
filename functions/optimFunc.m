@@ -1,4 +1,4 @@
-function [x,u,flag] = optimFunc(A,B,Q,R,x0,u0,x_l,x_u,u_l,u_u,du_l,du_u,N,x_end)
+function [x,u,flag] = optimFunc(A,B,Q,R,x0,u0,x_l,x_u,u_l,u_u,du_l,du_u,N,type)
 %MPCFUNC General MPC controller
 %   Detailed explanation goes here
 
@@ -10,16 +10,11 @@ mu = size(B,2);
 [A_delta, b_delta] = genAdelta(du_l,du_u,N,mx,mu,u0);
 
 % Generate matrices for quadprog
-G = blkdiag(kron(eye(N), Q), kron(eye(N), R));
+G=getG(Q,R,N,type);
+
 Aeq = gena2(A,B,N,mx,mu);
 beq = zeros(mx*N,1);
 beq(1:mx) = A*x0;
-
-if nargin == 14
-    Aeq((N-1)*mx+1:N*mx,(N-2)*mx+1:(N-1)*mx)=zeros(mx);
-    Aeq((N-1)*mx+1:N*mx,N*(mx+mu)-mu+1:N*(mx+mu))=zeros(mx,mu);
-    beq((N-1)*mx+1:N*mx) = x_end;
-end
 
 % Options
 opt = optimoptions('quadprog','Display', 'off');
@@ -48,6 +43,46 @@ else
     error('No optimal solution found')
 end
 
+    function y = linearFunc(ss,se,N,i)
+        y=(((se-ss)/(N-1))*(i-1)+ss);
+    end
+
+    function y = quadFunc(ss,se,N,i)
+        b=0;
+        c=(se-ss*N^2)/(1-N^2);
+        a=ss-c;
+
+        y=a*i^2+b*i+c;
+    end
+
+    function y = expFunc(a,N,i)
+        y=(exp(a*i)-exp(a))/(exp(a*N)-exp(a));
+    end
+
+    function G = getG(Q,R,N,type)
+        ss=0;
+        se=1;
+        Qi=cell(1,N);
+        switch type
+            case 'linear'
+                for i=1:N
+                    Qi{i}=linearFunc(ss,se,N,i)*Q;
+                end
+                G = blkdiag(blkdiag(Qi{:}), kron(eye(N), R));
+            case 'quadratic'
+                for i=1:N
+                    Qi{i}=quadFunc(ss,se,N,i)*Q;
+                end
+                G = blkdiag(blkdiag(Qi{:}), kron(eye(N), R));
+            case 'exponential'
+                for i=1:N
+                    Qi{i}=expFunc(0.3,N,i)*Q;
+                end
+                G = blkdiag(blkdiag(Qi{:}), kron(eye(N), R));
+            otherwise
+                G = blkdiag(kron(eye(N), Q), kron(eye(N), R));
+        end
+    end
 
 end
 

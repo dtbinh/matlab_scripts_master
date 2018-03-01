@@ -1,4 +1,4 @@
-function [q_t, v_t] = carSim2(dt)
+function [q_t, v_t] = carSim2(dt,slength)
 %CARSIM Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -26,6 +26,10 @@ function [q_t, v_t] = carSim2(dt)
         v_t(:,i)=q_dot_t(1:2);            %Save the target velocity vector
     end
 
+    if slength<t(end)
+        q_t=q_t(:,1:1/dt*slength+1);
+        v_t=v_t(:,1:1/dt*slength+1);
+    end
 
     function q_dot = vehicle(q,u)
     % Rolling without slippering kinematic car

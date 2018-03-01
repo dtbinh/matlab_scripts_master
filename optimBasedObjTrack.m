@@ -3,19 +3,27 @@ clear all
 clc
 addpath('./functions/')
 
-N = 30;
+% Tuning parmaeters
+q1=16;      %Error
+q2=0;       %Distance
+r=20;       %Speed
+N = 15;     %Prediction length
+
+
 dt=1;
-simlength=40; %s
+simlength=30; %s
 
 %% Simulate a car using the non slipping kinematic car method
 %q=[x;y;theta,phi]
 %u=[u_x;u_y]
 %[q_t,u_t]=carSim(0.1);
+%[q_t,u_t]=carSim2(0.1,simlength);
+%[q_t,u_t]=carSim3(0.1,simlength);
 [q_t,u_t]=carSim4(0.1,simlength);
 
 %% Inital conditions
 %UAV
-xu0=[150; -250];    %Init pos
+xu0=[150; -150];    %Init pos
 uu0=[0; -0];        %Init vel
 du0=[0;0];          %Initial distance
 
@@ -32,8 +40,8 @@ A = diag([1,1,0,0]);
 B = [eye(2),-eye(2);zeros(2),eye(2)]*dt;
 
 %Tuuning parameters
-Q = diag([1,1,0,0]);
-R = 30*diag([0,0,1,1]);
+Q = diag([q1,q1,q2,q2]);
+R = r*diag([0,0,1,1]);
 %R_d = 1*diag([0,0,1,1]);        % U delta
 mx = size(A,1);
 mu = size(B,2);
@@ -67,12 +75,14 @@ q_u2=q_u1;
 
 v_c_max=15;             %Mav vel UAV in m/s
 
+type='none';
+
 for i=1:length(ti)
     % MPC controller for UAV 1
     if mod(ti(i),dt)==0 %% Run the optimization
         u_l(1:2) = u_t(:,i);
         u_u(1:2) = u_t(:,i);
-        [x_uav,u_uav]=optimFunc(A,B,Q,R,x0,u0,x_l,x_u,u_l,u_u,du_l,du_u,N);
+        [x_uav,u_uav]=optimFunc(A,B,Q,R,x0,u0,x_l,x_u,u_l,u_u,du_l,du_u,N,type);
         u_out1=u_uav(:,1);
     end
     
@@ -93,13 +103,17 @@ for i=1:length(ti)
     
     %Plot simulation
     p.setPose(q_t(:,i),[q_u1(1:2,i);0;0],[q_u2(1:2,i);0;0]);
-    pause(dti/speed);
+    %pause(dti/speed);
 end
 
-%% Plotting
-% plot(ti,q_u(1:2,1:end-1))
-% figure 
-% plot(ti,q_u(3:4,1:end-1))
+% Title the figure
+figname=['type=' type ', N=' num2str(N) ', q1=' num2str(q1) ', q2=' num2str(q2) ' and r=' num2str(r)];
+title(figname)
+%Save the figure
+if 1==1
+    saveas(gcf,['figures/' figname],'epsc')
+end
+
 
 %% Functions
 function q_dot = quadcopter(q,v_d,kp)

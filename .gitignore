@@ -25,3 +25,5 @@ octave-workspace
 # Simulink autosave extension
 *.autosave
 
+# Fiures folder
+figures/
