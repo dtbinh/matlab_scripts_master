@@ -3,36 +3,38 @@ clear all
 clc
 addpath('./functions/')
 
-N = 40;
+N = 30;
 dt=1;
-simlength=50; %s
+simlength=40; %s
 
 %% Simulate a car using the non slipping kinematic car method
 %q=[x;y;theta,phi]
 %u=[u_x;u_y]
-%[q_t,u_t]=carSim2(0.1);
-[q_t,u_t]=carSim3(0.1,simlength);
+%[q_t,u_t]=carSim(0.1);
+[q_t,u_t]=carSim4(0.1,simlength);
 
 %% Inital conditions
 %UAV
 xu0=[150; -250];    %Init pos
 uu0=[0; -0];        %Init vel
+du0=[0;0];          %Initial distance
 
 % Landing pad
 xl0=q_t(1:2,1);
 ul0=u_t(:,1);
 
 % Init
-x0=xl0-xu0;
+x0=[xl0-xu0;du0];
 u0=[ul0;uu0];
 
 %% Define the dynamics and control parameters
-A = eye(2);
-B = [eye(2),-eye(2)]*dt;
+A = diag([1,1,0,0]);
+B = [eye(2),-eye(2);zeros(2),eye(2)]*dt;
 
-Q = 1*diag([1,1]);
-R = 20*diag([0,0,1,1]);
-R_d = 1*diag([0,0,1,1]);        % U delta
+%Tuuning parameters
+Q = diag([1,1,0,0]);
+R = 30*diag([0,0,1,1]);
+%R_d = 1*diag([0,0,1,1]);        % U delta
 mx = size(A,1);
 mu = size(B,2);
 
@@ -55,7 +57,7 @@ xmax=max([q_t(1,:),xu0(1)])+50;
 ymin=min([q_t(2,:),xu0(2)])-50;
 ymax=max([q_t(2,:),xu0(2)])+50;
 p = drawCarDrone([xmin, xmax, ymin, ymax]);
-speed=4;
+speed=20;
 
 dti=.1;
 ti=0:dti:simlength;
@@ -86,7 +88,7 @@ for i=1:length(ti)
     q_u2(:,i+1)=q_u2(:,i)+q_dot_u2*dti;
     
     % Read out data from the simulation to close the loop
-    x0=q_t(1:2,i)-q_u1(1:2,i);
+    x0=[q_t(1:2,i)-q_u1(1:2,i);0;0];
     u0=[u_t(:,i);q_u1(3:4,i)];
     
     %Plot simulation
