@@ -4,37 +4,31 @@ clc
 addpath('./functions/')
 
 % Tuning parmaeters
-q1=16;      %Error
-q2=0;       %Distance
-r=20;       %Speed
-N = 15;     %Prediction length
-cbgc=16;
+q1=1.3;       %pos error
+q2=500;       %Vel error
+r=0;        %uav vel
+N = 10;     %Prediction length
+cbgc=16;    
 
-dt=1;
-simlength=30; %s
+dt=.5;
+simlength=60; %s
 
 %% Simulate a car using the non slipping kinematic car method
 %q=[x;y;theta,phi]
 %u=[u_x;u_y]
 %[q_t,u_t]=carSim(0.1);
 %[q_t,u_t]=carSim2(0.1,simlength);
-%[q_t,u_t]=carSim3(0.1,simlength);
-[q_t,u_t]=carSim4(0.1,simlength);
+[q_t,u_t]=carSim3(0.1,simlength);
+%[q_t,u_t]=carSim4(0.1,simlength);
 
-tune1=[30];  %Prediction length 30
-tune2=[40];  %q1 40, 40
-tune3=[1500];  %q2 1500, 0
-tune4=[80];    %r 80, 1520
+%tune1=[30];  %Prediction length 30
+%tune2=[5];  %q1 40, 40         %1
+%tune3=[50];  %q2 1500, 0       %10
+%tune4=[10];    %r 80, 1520     %10
 
-for N=tune1
-    for q1=tune2
-        for q2=tune3
-            for r=tune4
-                plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc);
-            end
-        end
-    end
-end
+
+plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc);
+
 
 function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc)
 
@@ -42,19 +36,18 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc)
     %UAV
     xu0=[150; -150];    %Init pos
     uu0=[0; -0];        %Init vel
-    du0=[0;0];          %Initial distance
 
     % Landing pad
     xl0=q_t(1:2,1);
     ul0=u_t(:,1);
 
     % Init
-    x0=[xl0-xu0;du0];
+    x0=[xu0-xl0;uu0-ul0];
     u0=[ul0;uu0];
 
     %% Define the dynamics and control parameters
     A = diag([1,1,0,0]);
-    B = [eye(2),-eye(2);zeros(2),eye(2)]*dt;
+    B = [-eye(2)*dt,eye(2)*dt;-eye(2),eye(2)];
 
     %Tuuning parameters
     Q = diag([q1,q1,q2,q2]);
@@ -92,7 +85,7 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc)
 
     v_c_max=15;             %Mav vel UAV in m/s
 
-    type='none';
+    type='onlyVel';
 
     for i=1:length(ti)
         % MPC controller for UAV 1
@@ -100,14 +93,14 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc)
             u_l(1:2) = u_t(:,i);
             u_u(1:2) = u_t(:,i);
             [x_uav,u_uav]=optimFunc(A,B,Q,R,x0,u0,x_l,x_u,u_l,u_u,du_l,du_u,N,type);
-            u_out1=u_uav(:,1);
+            u_out1=u_uav(3:4,1);
         end
 
         % Constatnt bearing guidance control law for UAV 2
         u_out2 = constantBearingGuidance(q_u2(1:2,i),q_t(1:2,i),u_t(:,i),v_c_max,cbgc);
 
         %Simulate quadcopter 1
-        q_dot_u1=quadcopter(q_u1(:,i),u_out1(3:4),8);
+        q_dot_u1=quadcopter(q_u1(:,i),u_out1,8);
         q_u1(:,i+1)=q_u1(:,i)+q_dot_u1*dti;
 
         %Simulate quadcopter 2
@@ -115,7 +108,7 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc)
         q_u2(:,i+1)=q_u2(:,i)+q_dot_u2*dti;
 
         % Read out data from the simulation to close the loop
-        x0=[q_t(1:2,i)-q_u1(1:2,i);0;0];
+        x0=[q_u1(1:2,i)-q_t(1:2,i);q_u1(3:4,i)-u_t(:,i)];
         u0=[u_t(:,i);q_u1(3:4,i)];
 
         %Plot simulation

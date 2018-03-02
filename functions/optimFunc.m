@@ -64,6 +64,11 @@ end
         se=1;
         Qi=cell(1,N);
         switch type
+            case 'onlyVel'
+                for i=1:N
+                    Qi{i}=blkdiag(Q(1:2,1:2),linearFunc(ss,se,N,i)*Q(3:4,3:4));
+                end
+                G = blkdiag(blkdiag(Qi{:}), kron(eye(N), R));
             case 'linear'
                 for i=1:N
                     Qi{i}=linearFunc(ss,se,N,i)*Q;

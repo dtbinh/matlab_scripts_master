@@ -15,7 +15,8 @@ function [q_t, v_t] = carSim3(dt,simlength)
             u(1,i)=0;
         end    
         %rand vel
-        u(2,i)=normrnd(10,2);
+        %u(2,i)=normrnd(10,2);
+        u(2,i)=10;
     end
     
     
