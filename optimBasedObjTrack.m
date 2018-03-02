@@ -11,20 +11,20 @@ N = 15;     %Prediction length
 cbgc=16;
 
 dt=1;
-simlength=60; %s
+simlength=30; %s
 
 %% Simulate a car using the non slipping kinematic car method
 %q=[x;y;theta,phi]
 %u=[u_x;u_y]
-[q_t,u_t]=carSim(0.1);
+%[q_t,u_t]=carSim(0.1);
 %[q_t,u_t]=carSim2(0.1,simlength);
 %[q_t,u_t]=carSim3(0.1,simlength);
-%[q_t,u_t]=carSim4(0.1,simlength);
+[q_t,u_t]=carSim4(0.1,simlength);
 
 tune1=[30];  %Prediction length 30
-tune2=[10];  %q1 40, 40
-tune3=[0];  %q2 1500, 0
-tune4=[12];    %r 80, 1520
+tune2=[40];  %q1 40, 40
+tune3=[1500];  %q2 1500, 0
+tune4=[80];    %r 80, 1520
 
 for N=tune1
     for q1=tune2
@@ -82,7 +82,7 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc)
     ymin=min([q_t(2,:),xu0(2)])-50;
     ymax=max([q_t(2,:),xu0(2)])+50;
     p = drawCarDrone([xmin, xmax, ymin, ymax]);
-    speed=3;
+    speed=6;
 
     dti=.1;
     ti=0:dti:simlength;
@@ -92,7 +92,7 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc)
 
     v_c_max=15;             %Mav vel UAV in m/s
 
-    type='linear';
+    type='none';
 
     for i=1:length(ti)
         % MPC controller for UAV 1
