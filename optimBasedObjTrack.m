@@ -11,14 +11,14 @@ N = 10;     %Prediction length
 cbgc=16;    
 
 dt=.5;
-simlength=60; %s
+simlength=40; %s
 
 %% Simulate a car using the non slipping kinematic car method
 %q=[x;y;theta,phi]
 %u=[u_x;u_y]
 %[q_t,u_t]=carSim(0.1);
 %[q_t,u_t]=carSim2(0.1,simlength);
-[q_t,u_t]=carSim3(0.1,simlength);
+%[q_t,u_t]=carSim3(0.1,simlength);
 %[q_t,u_t]=carSim4(0.1,simlength);
 
 %tune1=[30];  %Prediction length 30
@@ -26,11 +26,13 @@ simlength=60; %s
 %tune3=[50];  %q2 1500, 0       %10
 %tune4=[10];    %r 80, 1520     %10
 
+for i=1:100
+    [q_t,u_t]=carSim3(0.1,simlength);
+    plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,i);
+end
 
-plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc);
 
-
-function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc)
+function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,i)
 
     %% Inital conditions
     %UAV
@@ -75,7 +77,8 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc)
     ymin=min([q_t(2,:),xu0(2)])-50;
     ymax=max([q_t(2,:),xu0(2)])+50;
     p = drawCarDrone([xmin, xmax, ymin, ymax]);
-    speed=6;
+    set(gcf,'units','normalized','outerposition',[0 0 1 1])
+    speed=15;
 
     dti=.1;
     ti=0:dti:simlength;
@@ -117,7 +120,9 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc)
     end
 
     % Title the figure
-    figname=['type=' type ', N=' num2str(N) ' cbgc=' num2str(cbgc) ', q1=' num2str(q1) ', q2=' num2str(q2) ' and r=' num2str(r)];
+    %figname=['type=' type ', N=' num2str(N) ' cbgc=' num2str(cbgc) ', q1=' num2str(q1) ', q2=' num2str(q2) ' and r=' num2str(r)];
+    
+    figname=['randWalk' num2str(i)];
     title(figname)
     %Save the figure
     if 1==0
