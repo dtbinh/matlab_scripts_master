@@ -88,7 +88,7 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,i)
     q_u2=q_u1;
     q_u3=q_u1;
 
-    v_c_max=15;             %Mav vel UAV in m/s
+    v_c_max=20;             %Mav vel UAV in m/s
 
     type='onlyVel';
 

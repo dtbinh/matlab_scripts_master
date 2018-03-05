@@ -9,6 +9,9 @@ function v_d = constantBearingGuidance(p_c,p_t,v_t,v_c_max,dp)
     
     % Debug:    
     K=v_c_max*norm(p_d)/sqrt(p_d'*p_d+dp^2);
+    %Limit vel
+    K=min(K,v_c_max-norm(v_t));
+    
     v_a=-K*p_d/(norm(p_d)+0.01);
     v_d=v_t+v_a;
 end
