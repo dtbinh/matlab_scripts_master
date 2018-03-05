@@ -1,3 +1,4 @@
+
 clear all
 %close all
 clc
@@ -26,7 +27,7 @@ simlength=40; %s
 %tune3=[50];  %q2 1500, 0       %10
 %tune4=[10];    %r 80, 1520     %10
 
-for i=1:100
+for i=1:5
     [q_t,u_t]=carSim3(0.1,simlength);
     plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,i);
 end
@@ -76,7 +77,7 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,i)
     xmax=max([q_t(1,:),xu0(1)])+50;
     ymin=min([q_t(2,:),xu0(2)])-50;
     ymax=max([q_t(2,:),xu0(2)])+50;
-    p = drawCarDrone([xmin, xmax, ymin, ymax]);
+    p = drawCarDrone([xmin, xmax, ymin, ymax],2);
     set(gcf,'units','normalized','outerposition',[0 0 1 1])
     speed=15;
 
@@ -85,6 +86,7 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,i)
     q_u1=zeros(4,length(ti));
     q_u1(:,1)=[xu0;uu0];     %Initial conditions
     q_u2=q_u1;
+    q_u3=q_u1;
 
     v_c_max=15;             %Mav vel UAV in m/s
 
@@ -101,6 +103,9 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,i)
 
         % Constatnt bearing guidance control law for UAV 2
         u_out2 = constantBearingGuidance(q_u2(1:2,i),q_t(1:2,i),u_t(:,i),v_c_max,cbgc);
+        
+        % Pure Pursuit guidance control law for UAV 3
+        %u_out3 = purePursuitGuidance(q_u3(1:2,i),q_t(1:2,i),16);
 
         %Simulate quadcopter 1
         q_dot_u1=quadcopter(q_u1(:,i),u_out1,8);
@@ -110,12 +115,16 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,i)
         q_dot_u2=quadcopter(q_u2(:,i),u_out2,8);
         q_u2(:,i+1)=q_u2(:,i)+q_dot_u2*dti;
 
+        %Simulate quadcopter 3
+        %q_dot_u3=quadcopter(q_u3(:,i),u_out3,8);
+        %q_u3(:,i+1)=q_u3(:,i)+q_dot_u3*dti;
+        
         % Read out data from the simulation to close the loop
         x0=[q_u1(1:2,i)-q_t(1:2,i);q_u1(3:4,i)-u_t(:,i)];
         u0=[u_t(:,i);q_u1(3:4,i)];
 
         %Plot simulation
-        p.setPose(q_t(:,i),[q_u1(1:2,i);0;0],[q_u2(1:2,i);0;0]);
+        p.setPose(q_t(:,i),[[q_u1(1:2,i);0;0],[q_u2(1:2,i);0;0],[q_u3(1:2,i);0;0]]);
         pause(dti/speed);
     end
 
@@ -146,6 +155,3 @@ function q_dot = quadcopter(q,v_d,kp)
     q_dot(1:2,1)=q(3:4);
     q_dot(3:4,1)=f/m;
 end
-
-
-
