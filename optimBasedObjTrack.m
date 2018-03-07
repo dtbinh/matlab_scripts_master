@@ -27,13 +27,13 @@ simlength=40; %s
 %tune3=[50];  %q2 1500, 0       %10
 %tune4=[10];    %r 80, 1520     %10
 
-for i=1:5
+for i=1:100
     [q_t,u_t]=carSim3(0.1,simlength);
     plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,i);
 end
 
 
-function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,i)
+function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,ii)
 
     %% Inital conditions
     %UAV
@@ -89,6 +89,9 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,i)
     q_u3=q_u1;
 
     v_c_max=20;             %Mav vel UAV in m/s
+    
+    %Plotting
+    u=zeros(2,length(ti));
 
     type='onlyVel';
 
@@ -102,7 +105,7 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,i)
         end
 
         % Constatnt bearing guidance control law for UAV 2
-        u_out2 = constantBearingGuidance(q_u2(1:2,i),q_t(1:2,i),u_t(:,i),v_c_max,cbgc);
+        u_out2 = constantBearingGuidance(q_u2(1:2,i),q_t(1:2,i),u_t(:,i),v_c_max,cbgc,v_c_max);
         
         % Pure Pursuit guidance control law for UAV 3
         %u_out3 = purePursuitGuidance(q_u3(1:2,i),q_t(1:2,i),16);
@@ -125,18 +128,24 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,i)
 
         %Plot simulation
         p.setPose(q_t(:,i),[[q_u1(1:2,i);0;0],[q_u2(1:2,i);0;0],[q_u3(1:2,i);0;0]]);
-        pause(dti/speed);
+        %pause(dti/speed);
+        
+        u(:,i)=[norm(u_out1);norm(u_out2)];
     end
 
     % Title the figure
     %figname=['type=' type ', N=' num2str(N) ' cbgc=' num2str(cbgc) ', q1=' num2str(q1) ', q2=' num2str(q2) ' and r=' num2str(r)];
     
-    figname=['randWalk' num2str(i)];
+    figname=['randWalk' num2str(ii)];
     title(figname)
     %Save the figure
     if 1==0
         saveas(gcf,['figures/' figname],'epsc')
+        close
     end
+    
+    % Velcity plot
+    %plot(ti,u)
 end
 
 %% Functions
