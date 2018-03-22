@@ -128,7 +128,7 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,ii)
 
         %Plot simulation
         p.setPose(q_t(:,i),[[q_u1(1:2,i);0;0],[q_u2(1:2,i);0;0],[q_u3(1:2,i);0;0]]);
-        %pause(dti/speed);
+        pause(dti/speed);
         
         u(:,i)=[norm(u_out1);norm(u_out2)];
     end

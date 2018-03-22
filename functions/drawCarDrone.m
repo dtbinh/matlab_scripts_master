@@ -86,9 +86,7 @@ classdef drawCarDrone < handle
                 obj.Uav(u) = hgtransform('Parent', ax);
                 drawUav(obj,obj.Uav(u),lengthUav,colorUav(u));
              end
-             
-             
-            
+
              
              % Init axes
              ax.DataAspectRatio = [1,1,1];
