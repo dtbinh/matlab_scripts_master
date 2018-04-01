@@ -11,7 +11,7 @@ function v_d = constantBearingGuidance(p_c,p_t,v_t,v_c_max,dp,v_max)
     K=v_c_max*norm(p_d)/sqrt(p_d'*p_d+dp^2);
     v_a=-K*p_d/(norm(p_d)+0.01);
     %Limit vel
-    if 1==1
+    if 1==0
         if norm(v_t+v_a) > v_max
             v_a=findNumva(v_t,v_a,v_max);
         end

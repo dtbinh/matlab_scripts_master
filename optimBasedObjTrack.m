@@ -27,8 +27,9 @@ simlength=40; %s
 %tune3=[50];  %q2 1500, 0       %10
 %tune4=[10];    %r 80, 1520     %10
 
-for i=1:100
-    [q_t,u_t]=carSim3(0.1,simlength);
+for i=1:1
+    %[q_t,u_t]=carSim3(0.1,simlength);
+    [q_t,u_t]=carSim2(0.1,simlength);
     plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,i);
 end
 
@@ -88,7 +89,7 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,ii)
     q_u2=q_u1;
     q_u3=q_u1;
 
-    v_c_max=20;             %Mav vel UAV in m/s
+    v_c_max=10;             %Mav vel UAV in m/s
     
     %Plotting
     u=zeros(2,length(ti));
@@ -128,7 +129,7 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,ii)
 
         %Plot simulation
         p.setPose(q_t(:,i),[[q_u1(1:2,i);0;0],[q_u2(1:2,i);0;0],[q_u3(1:2,i);0;0]]);
-        %pause(dti/speed);
+        pause(dti/speed);
         
         u(:,i)=[norm(u_out1);norm(u_out2)];
     end
