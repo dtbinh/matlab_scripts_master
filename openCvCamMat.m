@@ -13,7 +13,8 @@
 clear all
 
 %Select data output from the camera calibration tool to be loaded
-load('cameraParamsLogitechC925e.mat')
+%load('cameraParamsLogitechC925e.mat')
+load('cameraParamsUeye.mat')
 params=cameraParams;
 
 cameraMatrix=params.IntrinsicMatrix';
@@ -27,9 +28,10 @@ projection_matrix=[cameraMatrix,zeros(3,1)];
 
 %Write to file
 %Select camera name
-camName='WebcamC925e';
+%camName='WebcamC925e';
+camName='UeyeCam';
 %Select filname of the output .yaml file
-fname='WebcamC925e.yaml';
+fname='UeyeCam.yaml';
 
 fileId=fopen(fname,'w');
 
