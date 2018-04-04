@@ -2,7 +2,7 @@
 
 
 %% Initialize variables.
-filename = '/home/rosuser/Projects/matlab_scripts_master/data/testData.csv';
+filename = '/home/line/Projects/matlab_scripts_master/data/testData.csv';
 delimiter = ';';
 
 %% Format for each line of text:
@@ -15,6 +15,7 @@ fileID = fopen(filename,'r');
 %% Read columns of data according to the format.
 
 dataArray = textscan(fileID, formatSpec, 'Delimiter', delimiter, 'TextType', 'string',  'ReturnOnError', false);
+%dataArray = textscan(fileID, formatSpec);
 
 %% Close the text file.
 fclose(fileID);
