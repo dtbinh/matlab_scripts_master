@@ -9,6 +9,7 @@ addpath ./data
 filenames={'arucoData_150_0.csv','arucoData_185_45.csv','arucoData_366_45.csv','arucoData_573_45.csv','arucoData_790_0.csv','arucoData_1780_0.csv','arucoData_2640_0.csv'};
 %filenames={'arucoData_150_0.csv','arucoData_790_0.csv','arucoData_1780_0.csv','arucoData_2640_0.csv'};
 i=1;
+
 for fname=filenames
     [time_stamp,position,orientation,mesDist,mesAng]=getArucoDataFromFile(fname{1});
     
