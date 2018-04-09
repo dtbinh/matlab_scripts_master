@@ -2,7 +2,7 @@
 
 
 %% Initialize variables.
-filename = '/home/line/Projects/matlab_scripts_master/data/testData.csv';
+filename = 'data/testData_take3.csv';
 delimiter = ';';
 
 %% Format for each line of text:
@@ -38,38 +38,42 @@ uav_pos_covariance = str2num(dataArray{:, 14}(2:end).char);
 uav_orient_time = str2num(dataArray{:, 15}(2:end).char);
 uav_orientation = str2num(dataArray{:, 16}(2:end).char);
 uav_orient_covariance = str2num(dataArray{:, 17}(2:end).char);
+%% Find first timestep with all measurements valid
+st_max=1;
+for a=[aruco_time, lp_pose_time, lp_vel_time, uav_orient_time, uav_pos_time]
+    st=find(a>0,1);
+    if st>st_max
+        st_max=st;
+    end
+end
 
+%%
 % Remove empty data from aruco
-st=find(aruco_time>0,1);
-aruco_time=aruco_time(st:end);
-aruco_pos=aruco_pos(st:end,:);
-aruco_orient=aruco_orient(st:end,:);
+aruco_time=aruco_time(st_max:end);
+aruco_pos=aruco_pos(st_max:end,:);
+aruco_orient=aruco_orient(st_max:end,:);
 
 % Remove empty data from lp
-st=find(lp_pose_time>0,1);
-lp_pose_time=lp_pose_time(st:end,:);
-lp_pose_covariance=lp_pose_covariance(st:end,:);
-lp_pos=lp_pos(st:end,:);
-lp_orient=lp_orient(st:end,:);
+lp_pose_time=lp_pose_time(st_max:end,:);
+lp_pose_covariance=lp_pose_covariance(st_max:end,:);
+lp_pos=lp_pos(st_max:end,:);
+lp_orient=lp_orient(st_max:end,:);
 
-st=find(lp_vel_time>0,1);
-lp_vel_time=lp_vel_time(st:end,:);
-lp_linear_vel=lp_linear_vel(st:end,:);
-lp_angular_vel=lp_angular_vel(st:end,:);
-lp_covariance=lp_covariance(st:end,:);
+lp_vel_time=lp_vel_time(st_max:end,:);
+lp_linear_vel=lp_linear_vel(st_max:end,:);
+lp_angular_vel=lp_angular_vel(st_max:end,:);
+lp_covariance=lp_covariance(st_max:end,:);
 
 % Remove empty data from UAV
-st=find(uav_orient_time>0,1);
-uav_orient_time=uav_orient_time(st:end,:);
-uav_orientation=uav_orientation(st:end,:);
-uav_orient_covariance=uav_orient_covariance(st:end,:);
+uav_orient_time=uav_orient_time(st_max:end,:);
+uav_orientation=uav_orientation(st_max:end,:);
+uav_orient_covariance=uav_orient_covariance(st_max:end,:);
 
-st=find(uav_pos_time>0,1);
-uav_pos_time=uav_pos_time(st:end,:);
-uav_position=uav_position(st:end,:);
-uav_pos_covariance=uav_pos_covariance(st:end,:);
+uav_pos_time=uav_pos_time(st_max:end,:);
+uav_position=uav_position(st_max:end,:);
+uav_pos_covariance=uav_pos_covariance(st_max:end,:);
 
 
 
 %% Clear temporary variables
-clearvars filename delimiter formatSpec fileID dataArray ans st;
+clearvars filename delimiter formatSpec fileID dataArray ans st_max;
