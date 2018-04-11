@@ -2,12 +2,12 @@
 
 
 %% Initialize variables.
-filename = 'data/testData_take3.csv';
+filename = 'data/testData_take1.csv';
 delimiter = ';';
 
 %% Format for each line of text:
 
-formatSpec = '%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%[^\n\r]';
+formatSpec = '%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%[^\n\r]';
 
 %% Open the text file.
 fileID = fopen(filename,'r');
@@ -38,6 +38,9 @@ uav_pos_covariance = str2num(dataArray{:, 14}(2:end).char);
 uav_orient_time = str2num(dataArray{:, 15}(2:end).char);
 uav_orientation = str2num(dataArray{:, 16}(2:end).char);
 uav_orient_covariance = str2num(dataArray{:, 17}(2:end).char);
+uav_velocity_time = str2num(dataArray{:, 18}(2:end).char);
+uav_velocity_linear = str2num(dataArray{:, 19}(2:end).char);
+uav_velocity_angular = str2num(dataArray{:, 20}(2:end).char);
 %% Find first timestep with all measurements valid
 st_max=1;
 for a=[aruco_time, lp_pose_time, lp_vel_time, uav_orient_time, uav_pos_time]
