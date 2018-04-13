@@ -2,7 +2,7 @@
 
 
 %% Initialize variables.
-filename = 'data/testData_take1.csv';
+filename = 'data/testData_take3.csv';
 delimiter = ';';
 
 %% Format for each line of text:
@@ -75,6 +75,10 @@ uav_orient_covariance=uav_orient_covariance(st_max:end,:);
 uav_pos_time=uav_pos_time(st_max:end,:);
 uav_position=uav_position(st_max:end,:);
 uav_pos_covariance=uav_pos_covariance(st_max:end,:);
+
+uav_velocity_time=uav_velocity_time(st_max:end,:);
+uav_velocity_angular=uav_velocity_angular(st_max:end,:);
+uav_velocity_linear=uav_velocity_linear(st_max:end,:);
 
 
 

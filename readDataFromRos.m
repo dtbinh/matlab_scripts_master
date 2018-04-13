@@ -1,11 +1,11 @@
 clear all
-close all
 run data/loadData.m    %Load the data from testData.csv in to workspace as testData
 addpath('./functions');
 
 %% Select data to plot
-%plotd='UAV';
-plotd='LP';
+plotd='NO';
+plotd='UAV';
+%plotd='LP';
 
 %% Plot the roation
 
@@ -21,13 +21,7 @@ uav_orientation_NED=ENU2NEDquat(uav_orientation_ENU);
 
 %LP
 %Transfer the quaternions to matlabs representation of quaternions (i,j,k,w) -> (w,i,j,k)
-lp_orientation_ENU=[lp_orient(:,4),lp_orient(:,1),lp_orient(:,2),lp_orient(:,3)];
-
-%Rotate from UAV frame to from ENU to NED
-uav_orientation_NED=ENU2NEDquat(uav_orientation_ENU);
-
-%Convert to euler angles for visual illustration
-[Theta_nu(:,3),Theta_nu(:,2),Theta_nu(:,1)]= quat2angle(uav_orientation_NED,'ZYX');
+%lp_orientation_ENU=[lp_orient(:,4),lp_orient(:,1),lp_orient(:,2),lp_orient(:,3)];
 
 
 if plotd=='UAV'
@@ -37,24 +31,27 @@ if plotd=='UAV'
     legend('Roll','Pitch','Yaw')
     ylabel('Rotation [rad]');
 elseif plotd=='LP'
-    
-    
-    
+       
 end
 
 %% Plot the velocity
-plotVel=2;
-if plotVel==1
+%Transfer from ENU to NED
+uav_velocity_linear_NED=zeros(3,length(uav_velocity_linear));
+for i=1:length(uav_velocity_linear)
+    uav_velocity_linear_NED(:,i)=ENU2NEDeuler(uav_velocity_linear(i,:)');
+end 
+
+if plotd=='UAV'
     figure(2)
     plot(uav_velocity_time,uav_velocity_angular(:,:))
     legend('X','Y','Z')
     ylabel('Angular vel [rad/s]')
 
     figure(3)
-    plot(uav_velocity_time,uav_velocity_linear(:,:))
-    legend('East','North','Up')
+    plot(uav_velocity_time,uav_velocity_linear_NED)
+    legend('North','East','Down')
     ylabel('Linear vel [m/s]')
-elseif plotVel==2
+elseif plotd=='LP'
     figure(2)
     plot(lp_vel_time,lp_angular_vel(:,:))
     legend('X','Y','Z')
@@ -66,71 +63,33 @@ elseif plotVel==2
     ylabel('Linear vel [m/s]')
 end
 
-
-pos_n(1)=lp_pos(1,1);
-pos_e(1)=lp_pos(1,2);
-for i=2:length(lp_vel_time)
-   pos_n(i)=pos_n(i-1)+lp_linear_vel(i,1)*(lp_vel_time(i)-lp_vel_time(i-1))*1e-9;
-   pos_e(i)=pos_e(i-1)+lp_linear_vel(i,2)*(lp_vel_time(i)-lp_vel_time(i-1))*1e-9;
-end
-
 %% Plot GNSS positions
 %deltaPos=lp_pos-uav_position;
+%Correct for altitude error
+lp_pos(:,3)=lp_pos(:,3)-16.3;
 
 figure(4)
 plot(lp_pos(:,2),lp_pos(:,1))
 hold on
 plot(uav_position(:,2),uav_position(:,1))
-plot(pos_e,pos_n)
 hold off
 
 xlabel('East')
 ylabel('North')
 
-%% Collect only the timesteps with new images and store in syncData
-j=2;
-prev_time=aruco_time(1);
-new_mes(1)=1;
-
-for i=2:length(aruco_time)
-    if aruco_time(i)>prev_time
-        prev_time=aruco_time(i);
-        new_mes(j)=i;
-        j=j+1;
-    end
-end
-
-syncData = struct('time',aruco_time(new_mes,:), 'pos_uav', uav_position(new_mes,:), 'pos_lp', lp_pos(new_mes,:), 'pos_aruco_cam', aruco_pos(new_mes,:),'pos_aruco_NED',aruco_pos(new_mes,:)*0,'rot_uav_NED', uav_orientation_NED(new_mes,:));
 
 %% Transform the aruco tag pos vector to NED
 %p^n_(l/u)=R^n_u(Theta_(nu))p^u_(l/u)
+aruco_pos_NED=zeros(3,length(aruco_pos));
+aruco_pos_u=aruco_pos_NED;
 
 %Transform to UAV frame
-R=rotMatZYX([0,0,-pi/2]); %Alt1
-p_l_u_u=R*syncData.pos_aruco_cam';
-
-%Transform from UAV frame to NED frame
-for i=1:length(syncData.time)
-    R_un=quat2rotm(syncData.rot_uav_NED(i,:));
-    syncData.pos_aruco_NED(i,:)=R_un*p_l_u_u(:,i);
+Rcu=rotMatZYX([0,0,-pi/2]); %Alt1
+for i=1:length(aruco_time)
+    %Transform to UAV frame
+    aruco_pos_u(:,i)=Rcu*aruco_pos(i,:)';
+    
+    %Transform to NED
+    R_un=quat2rotm(uav_orientation_NED(i,:));
+    aruco_pos_NED(:,i)=R_un*aruco_pos_u(:,i);
 end
-
-%%
-
-plottype=1;
-if plottype==1
-    % Axes to plot, x=1, y=2, z=3
-    ap=1;
-    for ap=1:3
-       figure(ap+4)
-       plot(syncData.time,syncData.pos_aruco_NED(:,ap),'*')
-       hold on
-       plot(syncData.time,syncData.pos_lp(:,ap)-syncData.pos_uav(:,ap),'*')
-       legend('Aruco','GNSS')
-       hold off
-       title(['Axis nr:', int2str(ap)])
-    end
-elseif plottype==2
-    %%Nothing
-end
-
