@@ -52,6 +52,11 @@ classdef kalmanFilter < handle
             I=eye(6,6);
             obj.x_hat=obj.x_hat_pri+K*(obj.z-obj.H*obj.x_hat_pri);
             obj.P=(I-K*obj.H)*obj.P_pri*transpose(I-K*obj.H)+K*obj.R*transpose(K);
+            
+            % Set predictionas a priori if there is several measurement
+            % updates
+            obj.x_hat_pri=obj.x_hat;
+            obj.P_pri=obj.P;
         end
         
         function [Phi,Delta] = updatePhiDelta(obj,dt)

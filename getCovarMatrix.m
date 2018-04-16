@@ -10,6 +10,10 @@ filenames={'arucoData_150_0.csv','arucoData_185_45.csv','arucoData_366_45.csv','
 %filenames={'arucoData_150_0.csv','arucoData_790_0.csv','arucoData_1780_0.csv','arucoData_2640_0.csv'};
 i=1;
 
+plotvar=1;
+plotdist=0;
+ploterrorz=0;
+
 for fname=filenames
     [time_stamp,position,orientation,mesDist,mesAng]=getArucoDataFromFile(fname{1});
     
@@ -23,14 +27,28 @@ for fname=filenames
     %Format string
     tagString=sprintf('distance %2.2d and rotated %i',mesDist/100, mesAng);
     
-    figure
-    plot(time_stamp, angEuler);
-    legend('x','y','z')
-    title(['Angular rotation ',tagString])
-    figure
-    plot(time_stamp,position);
-    title(['Linear position ',tagString]);
-    legend('x','y','z')
+    if plotdist
+        figure
+        plot(time_stamp, angEuler);
+        legend('x','y','z')
+        title(['Angular rotation ',tagString])
+        figure
+        plot(time_stamp,position);
+        title(['Linear position ',tagString]);
+        legend('x','y','z')
+    end
+    
+    if ploterrorz
+        rel=time_stamp*0+mesDist/100;
+        tagString2=sprintf('Error on distance %2.2d',mesDist/100);
+        
+        figure
+        plot(time_stamp,position(:,3)-rel)
+        %hold on
+        %plot(time_stamp,rel)
+        %hold off
+        title(tagString2);
+    end
 
     covarEuler=cov(angEuler);
     covarPos=cov(position);
@@ -62,16 +80,18 @@ for data=s
     y_axis(4:6,end)=diag(data.Covar_ang);
 end
 
-figure
-plot(x_axis,y_axis(1:3,:),'-*');
-title('Covariance position vector')
-xlabel('Distance [m]');
-ylabel('Covariance [m]');
-legend('x','y','z');
+if plotvar
+    figure
+    plot(x_axis,y_axis(1:3,:),'-*');
+    title('Covariance position vector')
+    xlabel('Distance [m]');
+    ylabel('Covariance [m]');
+    legend('x','y','z');
 
-figure
-plot(x_axis,y_axis(4:6,:),'-*');
-title('Covariance orientation vector')
-xlabel('Distance [m]');
-ylabel('Covariance [m]');
-legend('x','y','z');
+    figure
+    plot(x_axis,y_axis(4:6,:),'-*');
+    title('Covariance orientation vector')
+    xlabel('Distance [m]');
+    ylabel('Covariance [m]');
+    legend('x','y','z');
+end
