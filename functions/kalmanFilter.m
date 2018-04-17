@@ -33,10 +33,15 @@ classdef kalmanFilter < handle
             obj.P_pri=obj.Phi*obj.P*transpose(obj.Phi)+obj.Q;
         end
         
-        function updateMeasurement(obj,type,measurement)
+        function updateMeasurement(obj,type,measurement,varargin)
             % Update the H  z matrix
             obj.H=obj.getH(type);
             obj.z=obj.getZ(type,measurement);
+            
+            if nargin>3
+                covariance=varargin{1};
+                obj.R=obj.updateR(type,covariance);
+            end
             
             obj.updateFilter();
         end
@@ -87,6 +92,20 @@ classdef kalmanFilter < handle
             else
                 H=zeros(9,6);
             end
+        end
+        
+        function R = updateR(obj,measure,covariance)
+            tempR=obj.R;
+            if measure=="Aruco"
+                tempR(4:6,4:6)=covariance;
+            elseif measure=="LP_pos"
+                tempR(1:3,1:3)=covariance;
+            elseif measure=="LP_vel"
+                tempR(7:9,7:9)=covariance;
+            else
+                %Nothing
+            end
+            R=tempR;
         end
     end
 end

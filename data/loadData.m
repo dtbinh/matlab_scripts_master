@@ -2,7 +2,7 @@
 
 
 %% Initialize variables.
-filename = 'data/testData_take1.csv';
+filename = 'data/testData_take3.csv';
 delimiter = ';';
 
 %% Format for each line of text:

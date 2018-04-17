@@ -26,8 +26,8 @@ end
 %Q=diag([.5,.5,1,2,2,.5]);   %State: pos;vel
 %R=diag([.5,.5,2,.02,.02,.02,.1,.1,.1]);    %Mesure: GNSS pos;Aruco pos;LP vel
 
-Q=diag([.5,.5,2,1,1,1]);                  %State: pos;vel
-R=diag([5,5,2,.1,.1,.1,.5,.5,.5]);    %Mesure: GNSS pos;Aruco pos;LP vel
+Q=diag([.2,.2,.2,.1,.1,.1]);                  %State: pos;vel
+R=diag([2,2,11,.3,.3,.5,2,2,2]);           %Mesure: GNSS pos;Aruco pos;LP vel
 
 x0=[aruco_pos(1,:)';zeros(3,1)];
 P0=[eye(3)*2,eye(3)*2;eye(3)*2,eye(3)*4];
@@ -51,24 +51,29 @@ for i=2:length(aruco_time)
         t_prev=uav_velocity_time(i);
 
         %UAV vel
-        kf.u=uav_velocity_linear_NED(:,1);
+        kf.u=uav_velocity_linear(i,:)';
         
         %Project ahead
         kf.projectAhead(dt);
         
         %Aruco pos 
         if find(n_mes{1}==i)    %Callback on Aruco_pos
-            %Finds the corresponding measurement from UAV_orientation that 
+            %Finds the corresponding measurement from UAV_orientation that
             %matches the time stamp
-            uav_orient = findCorrMeas(aruco_time(i),uav_orient_time,uav_orientation_NED');
-            uav_orient = quatnormalize(uav_orient');
+            uav_orient_ = findCorrMeas(aruco_time(i),uav_orient_time,uav_orientation_NED');
+            uav_orient = quatnormalize(uav_orient_');
+            
+            %Transform from CAM to UAV
+            Rcu=rotMatZYX([0,0,-pi/2]); %Rotation from CAM frame to UAV frame
             
             %Transform from UAV to NED
             R_un=quat2rotm(uav_orient);
-            aruco_pos_NED=R_un*aruco_pos_u(:,i);
+            
+            aruco_pos_NED=R_un*Rcu*aruco_pos(i,:)';
             
             kf.updateMeasurement("Aruco",aruco_pos_NED);
-            meas_aruco.t(end+1)=aruco_time(i);
+            %meas_aruco.t(end+1)=aruco_time(i);
+            meas_aruco.t(end+1)=uav_velocity_time(i);
             meas_aruco.data(:,end+1)=aruco_pos_NED;
         end
 
@@ -76,8 +81,9 @@ for i=2:length(aruco_time)
         if find(n_mes{2}==i)    %Callback on LP_vel
             lp_linear_vel_NED=ENU2NEDeuler(lp_linear_vel(i,:)');
             kf.updateMeasurement("LP_vel",lp_linear_vel_NED);
-            meas_LP_vel.t(end+1)=lp_vel_time(i);
-            meas_LP_vel.data(:,end+1)=lp_linear_vel(i,:)';
+            meas_LP_vel.t(end+1)=uav_velocity_time(i);
+            %meas_LP_vel.t(end+1)=lp_vel_time(i);
+            meas_LP_vel.data(:,end+1)=lp_linear_vel_NED;
         end
 
         %LP pos-UAV pos
@@ -86,9 +92,21 @@ for i=2:length(aruco_time)
             %the time stamp
             uav_pos = findCorrMeas(lp_pose_time(i),uav_pos_time,uav_position');
             
-            kf.updateMeasurement("LP_pos",(lp_pos(i,:)'-uav_pos));
-            meas_delta_pos.t(end+1)=lp_pose_time(i);
-            meas_delta_pos.data(:,end+1)=(lp_pos(i,:)'-uav_pos);
+            %Add the translation vector between aruco tag an IMU on the LP
+            p_li_l=[0.85;-.59;-.50];
+            %p_li_l=[0;-0;-0];
+            R_li = rotMatZYX([0;0;-pi/2]);        %Rotation from aruco tag to IMU
+            R_in = quat2rotm(lp_orientation_NED(i,:));   %Rotate from IMU to NED
+            lp_pos_=lp_pos(i,:)'-R_in*R_li*p_li_l;
+            
+            %Adds the civariance matrix for UAV and LP position
+            lp_pose_covariance_ = reshape(lp_pose_covariance(i,:),6,6);
+            lp_uav_pos_covariance=reshape(uav_pos_covariance(i,:),3,3)+lp_pose_covariance_(1:3,1:3);
+            
+            kf.updateMeasurement("LP_pos",(lp_pos_-uav_pos),lp_uav_pos_covariance);
+            meas_delta_pos.t(end+1)=uav_velocity_time(i);
+            %meas_delta_pos.t(end+1)=lp_pose_time(i);
+            meas_delta_pos.data(:,end+1)=(lp_pos_-uav_pos);
         end
     end
 
@@ -100,19 +118,35 @@ end
 % Plot
 
 % Axes to plot, x=1, y=2, z=3
-
+t0=uav_velocity_time(1);
+figure(7)
 for ap=1:3
-   figure(ap+4)
-   plot(meas_aruco.t,meas_aruco.data(ap,:),'*')
+   subplot(3,1,ap)
+   plot((meas_aruco.t-t0)*1e-9,meas_aruco.data(ap,:),'*')
    hold on
-   plot(meas_delta_pos.t,meas_delta_pos.data(ap,:),'--')
-   
-   plot(uav_orient_time,x_hat(ap,:))
+   plot((meas_delta_pos.t-t0)*1e-9,meas_delta_pos.data(ap,:),'--')
+   plot((uav_orient_time-t0)*1e-9,x_hat(ap,:))
    legend('Aruco','GNSS','Kalman')
+   if ap==1
+       title('Position UAV LP')
+   end
+   ylabel(['Axis nr:', int2str(ap)])
    hold off
-   title(['Axis nr:', int2str(ap)])
 end
 
+figure(8)
+for ap=1:3
+    subplot(3,1,ap)
+    plot((meas_LP_vel.t-t0)*1e-9,meas_LP_vel.data(ap,:),'--')
+    hold on
+    plot((uav_orient_time-t0)*1e-9,x_hat(ap+3,:))
+    legend('Measure','Kalman')
+    if ap==1 
+        title('Velocity UAV LP') 
+    end
+    ylabel(['Axis nr:', int2str(ap)])
+    hold off
+end
 
 %% Functions
 %i=20;
