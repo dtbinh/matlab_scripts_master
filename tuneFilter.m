@@ -40,6 +40,8 @@ t_prev=uav_velocity_time(1);
 
 t0=uav_velocity_time(1);
 
+lp_prev_mes=[0;0;0];
+
 meas_aruco=struct('t',[],'data',[]);
 meas_LP_vel=struct('t',[],'data',[]);
 meas_delta_pos=struct('t',[],'data',[]);
@@ -78,13 +80,16 @@ for i=2:length(aruco_time)
         end
 
         %LP vel
-        if find(n_mes{2}==i)    %Callback on LP_vel
+        meas_change=lp_prev_mes~=lp_linear_vel(i,:)';
+        %if find(n_mes{2}==i)   %Callback on LP_vel
+        if ~isempty(find(meas_change==1))   %Callback on LP_vel
             lp_linear_vel_NED=ENU2NEDeuler(lp_linear_vel(i,:)');
             kf.updateMeasurement("LP_vel",lp_linear_vel_NED);
             meas_LP_vel.t(end+1)=uav_velocity_time(i);
             %meas_LP_vel.t(end+1)=lp_vel_time(i);
             meas_LP_vel.data(:,end+1)=lp_linear_vel_NED;
         end
+        lp_prev_mes=lp_linear_vel(i,:)';
 
         %LP pos-UAV pos
         if find(n_mes{3}==i)    %Callback on LP_pos
@@ -99,9 +104,8 @@ for i=2:length(aruco_time)
             R_in = quat2rotm(lp_orientation_NED(i,:));   %Rotate from IMU to NED
             lp_pos_=lp_pos(i,:)'-R_in*R_li*p_li_l;
             
-            %Adds the civariance matrix for UAV and LP position
-            lp_pose_covariance_ = reshape(lp_pose_covariance(i,:),6,6);
-            lp_uav_pos_covariance=reshape(uav_pos_covariance(i,:),3,3)+lp_pose_covariance_(1:3,1:3);
+            %Adds the covariance matrix for UAV and LP position
+            lp_uav_pos_covariance=reshape(uav_pos_covariance(i,:),3,3)+diag(lp_pose_covariance(50,[1,8,15]));
             
             kf.updateMeasurement("LP_pos",(lp_pos_-uav_pos),lp_uav_pos_covariance);
             meas_delta_pos.t(end+1)=uav_velocity_time(i);
@@ -119,7 +123,7 @@ end
 
 % Axes to plot, x=1, y=2, z=3
 t0=uav_velocity_time(1);
-figure(7)
+figure(5)
 for ap=1:3
    subplot(3,1,ap)
    plot((meas_aruco.t-t0)*1e-9,meas_aruco.data(ap,:),'*')
@@ -128,21 +132,21 @@ for ap=1:3
    plot((uav_orient_time-t0)*1e-9,x_hat(ap,:))
    legend('Aruco','GNSS','Kalman')
    if ap==1
-       title('Position UAV LP')
+       title('Position LP-UAV')
    end
    ylabel(['Axis nr:', int2str(ap)])
    hold off
 end
 
-figure(8)
+figure(6)
 for ap=1:3
     subplot(3,1,ap)
-    plot((meas_LP_vel.t-t0)*1e-9,meas_LP_vel.data(ap,:),'--')
+    plot((meas_LP_vel.t-t0)*1e-9,meas_LP_vel.data(ap,:),'*')
     hold on
     plot((uav_orient_time-t0)*1e-9,x_hat(ap+3,:))
     legend('Measure','Kalman')
     if ap==1 
-        title('Velocity UAV LP') 
+        title('Velocity LP') 
     end
     ylabel(['Axis nr:', int2str(ap)])
     hold off
