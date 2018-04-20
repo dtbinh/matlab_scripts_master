@@ -2,6 +2,8 @@ clear all
 run data/loadData.m    %Load the data from testData.csv in to workspace as testData
 addpath('./functions');
 
+fileparts(which('readDataFromRos.m'))
+
 %% Select data to plot
 plotd="NO";
 %plotd="UAV";

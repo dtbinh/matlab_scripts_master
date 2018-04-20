@@ -23,17 +23,19 @@ for time_vect = {aruco_time, lp_vel_time, lp_pose_time, uav_orient_time, uav_pos
     k=k+1;
 end
 %% 
-%Q=diag([.5,.5,1,2,2,.5]);   %State: pos;vel
-%R=diag([.5,.5,2,.02,.02,.02,.1,.1,.1]);    %Mesure: GNSS pos;Aruco pos;LP vel
+Q=diag([.01,.01,.01,.1,.1,.1]);                  %State: pos;vel
+R=diag([2,2,11,.3,.3,.5,1,1,1]);           %Mesure: GNSS pos;Aruco pos;LP vel
 
-Q=diag([.2,.2,.2,.1,.1,.1]);                  %State: pos;vel
-R=diag([2,2,11,.3,.3,.5,2,2,2]);           %Mesure: GNSS pos;Aruco pos;LP vel
+%Find initial conditions
+lp_linear_vel_NED=ENU2NEDeuler(lp_linear_vel(1,:)');
+x0=[aruco_pos(1,:)';lp_linear_vel_NED];
+%P0=[diag([2.3 2.4 7.5]),diag([.4 .4 1.2]);diag([.4 .4 1.2]),diag([.2 .2 .3])];
+P0=[diag([.15 .15 .24]),diag([.11 .11 .14]);diag([.11 .11 .14]),diag([.35 .35 .38])];
 
-x0=[aruco_pos(1,:)';zeros(3,1)];
-P0=[eye(3)*2,eye(3)*2;eye(3)*2,eye(3)*4];
 kf = kalmanFilter(Q,R,x0,P0);
 
 x_hat=zeros(6,length(aruco_time));
+P=zeros(36,length(aruco_time));
 x_hat(:,1)=x0;
 
 t_prev=uav_velocity_time(1);
@@ -85,8 +87,8 @@ for i=2:length(aruco_time)
         if ~isempty(find(meas_change==1))   %Callback on LP_vel
             lp_linear_vel_NED=ENU2NEDeuler(lp_linear_vel(i,:)');
             kf.updateMeasurement("LP_vel",lp_linear_vel_NED);
+            
             meas_LP_vel.t(end+1)=uav_velocity_time(i);
-            %meas_LP_vel.t(end+1)=lp_vel_time(i);
             meas_LP_vel.data(:,end+1)=lp_linear_vel_NED;
         end
         lp_prev_mes=lp_linear_vel(i,:)';
@@ -115,27 +117,42 @@ for i=2:length(aruco_time)
     end
 
     x_hat(:,i)=kf.x_hat;
+    P(:,i)=kf.P(:);
 end
 
 %{aruco_time, lp_vel_time, lp_pose_time, uav_orient_time, uav_pos_time, uav_velocity_time}
 
 % Plot
 
+%Read out the variance
+var=zeros(6,length(P));
+
+for i =1:length(P)
+    var(:,i)=sqrt(diag(reshape(P(:,i),6,6)));
+end
+
 % Axes to plot, x=1, y=2, z=3
+plot2sigma=1;
 t0=uav_velocity_time(1);
 figure(5)
 for ap=1:3
-   subplot(3,1,ap)
-   plot((meas_aruco.t-t0)*1e-9,meas_aruco.data(ap,:),'*')
-   hold on
-   plot((meas_delta_pos.t-t0)*1e-9,meas_delta_pos.data(ap,:),'--')
-   plot((uav_orient_time-t0)*1e-9,x_hat(ap,:))
-   legend('Aruco','GNSS','Kalman')
-   if ap==1
+    subplot(3,1,ap)
+    plot((meas_aruco.t-t0)*1e-9,meas_aruco.data(ap,:),'*')   %Aruco
+    hold on
+    plot((meas_delta_pos.t-t0)*1e-9,meas_delta_pos.data(ap,:),'--','MarkerSize',4)  %GNSS
+    plot((uav_orient_time-t0)*1e-9,x_hat(ap,:))  %KF
+    if plot2sigma
+        plot((uav_orient_time-t0)*1e-9,x_hat(ap,:)+2*var(ap,:),'k-.')   %2-sigma bound
+        plot((uav_orient_time-t0)*1e-9,x_hat(ap,:)-2*var(ap,:),'k-.')   %2-sigma bound
+        legend('Aruco','GNSS','Kalman','2-sigma')
+    else
+        legend('Aruco','GNSS','Kalman')
+    end
+    if ap==1
        title('Position LP-UAV')
-   end
-   ylabel(['Axis nr:', int2str(ap)])
-   hold off
+    end
+    ylabel(['Axis nr:', int2str(ap)])
+    hold off
 end
 
 figure(6)
@@ -144,7 +161,13 @@ for ap=1:3
     plot((meas_LP_vel.t-t0)*1e-9,meas_LP_vel.data(ap,:),'*')
     hold on
     plot((uav_orient_time-t0)*1e-9,x_hat(ap+3,:))
-    legend('Measure','Kalman')
+    if plot2sigma
+        plot((uav_orient_time-t0)*1e-9,x_hat(ap+3,:)+2*var(ap+3,:),'k-.')   %2-sigma bound
+        plot((uav_orient_time-t0)*1e-9,x_hat(ap+3,:)-2*var(ap+3,:),'k-.')   %2-sigma bound
+        legend('Measure','Kalman','2-sigma')
+    else
+        legend('Measure','Kalman')
+    end
     if ap==1 
         title('Velocity LP') 
     end
