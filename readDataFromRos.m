@@ -2,8 +2,6 @@ clear all
 run data/loadData.m    %Load the data from testData.csv in to workspace as testData
 addpath('./functions');
 
-fileparts(which('readDataFromRos.m'))
-
 %% Select data to plot
 plotd="NO";
 %plotd="UAV";
@@ -97,7 +95,7 @@ end
 %% Plot GNSS positions
 %deltaPos=lp_pos-uav_position;
 %Correct for altitude error
-lp_pos(:,3)=lp_pos(:,3)-17;     %%%Error ca 16m
+lp_pos(:,3)=lp_pos(:,3);     %%%Error ca 16m
 
 figure(4)
 plot(lp_pos(:,2),lp_pos(:,1))

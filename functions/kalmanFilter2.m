@@ -1,23 +1,24 @@
-classdef kalmanFilter < handle
-    %Kalman filter for position and velocity estimation 
+classdef kalmanFilter2 < handle
+    %Kalman filter for position and velocity estimation including
+    %estimation of the bias error from GNSS.
     %   Detailed explanation goes here
     
-    properties
-        H = zeros(9,6);
-        z = zeros(9,1);
+    properties (SetAccess = public)
+        H
+        z
         x_hat
         x_hat_pri
         P_pri
         P
-        Phi=zeros(6,6);
-        Delta=zeros(6,3);
-        u=zeros(3,1);
-        Q=zeros(6,6);
-        R=zeros(9,9);
+        Phi
+        Delta
+        u
+        Q
+        R
     end
     
     methods
-        function obj =  kalmanFilter(Q,R,x0,P0)
+        function obj =  kalmanFilter2(Q,R,x0,P0)
             obj.Q=Q;
             obj.R=R;
             obj.x_hat=x0;
@@ -54,7 +55,7 @@ classdef kalmanFilter < handle
             K=obj.P_pri*transpose(obj.H)*inv(obj.H*obj.P_pri*transpose(obj.H)+obj.R);
 
             % Update estimate with measurement z:
-            I=eye(6,6);
+            I=eye(9);
             obj.x_hat=obj.x_hat_pri+K*(obj.z-obj.H*obj.x_hat_pri);
             obj.P=(I-K*obj.H)*obj.P_pri*transpose(I-K*obj.H)+K*obj.R*transpose(K);
             
@@ -65,10 +66,10 @@ classdef kalmanFilter < handle
         end
         
         function [Phi,Delta] = updatePhiDelta(obj,dt)
-            Phi=eye(6);
+            Phi=eye(9);
             Phi(1:3,4:6)=eye(3)*dt;
 
-            Delta=[-eye(3)*dt;zeros(3)];
+            Delta=[-eye(3)*dt;zeros(6,3)];
         end
 
         function z = getZ(obj,measure,data)
@@ -83,27 +84,24 @@ classdef kalmanFilter < handle
         end
 
         function H = getH(obj,measure)
-            if measure=="Aruco"
-                H=[zeros(3,6);eye(3,3),zeros(3,3);zeros(3,6)];
-            elseif measure=="LP_pos"
-                H=[eye(3,3),zeros(3,3);zeros(3,6);zeros(3,6)];
+            H=zeros(9,9);
+            if measure=="LP_pos"
+                H(1:3,:)=[eye(3,3),zeros(3,3),eye(3,3)];
+            elseif measure=="Aruco"
+                H(4:6,:)=[eye(3,3),zeros(3,3),zeros(3,3)];
             elseif measure=="LP_vel"
-                H=[zeros(3,6);zeros(3,6);zeros(3,3),eye(3,3)];
-            else
-                H=zeros(9,6);
+                H(7:9,:)=[zeros(3,3),eye(3,3),zeros(3,3)];
             end
         end
         
         function R = updateR(obj,measure,covariance)
             tempR=obj.R;
-            if measure=="Aruco"
-                tempR(4:6,4:6)=covariance;
-            elseif measure=="LP_pos"
+            if measure=="LP_pos"
                 tempR(1:3,1:3)=covariance;
+            elseif measure=="Aruco"
+                tempR(4:6,4:6)=covariance;
             elseif measure=="LP_vel"
                 tempR(7:9,7:9)=covariance;
-            else
-                %Nothing
             end
             R=tempR;
         end

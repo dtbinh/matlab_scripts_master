@@ -23,19 +23,23 @@ for time_vect = {aruco_time, lp_vel_time, lp_pose_time, uav_orient_time, uav_pos
     k=k+1;
 end
 %% 
-Q=diag([.01,.01,.01,.1,.1,.1]);                  %State: pos;vel
-R=diag([2,2,11,.3,.3,.5,1,1,1]);           %Mesure: GNSS pos;Aruco pos;LP vel
+%Q=diag([.01,.01,.01,.1,.1,.1]);                  %State: pos;vel
+Q=diag([.01,.01,.01,.1,.1,.1,.00001,.00001,.001]);          %State: pos;vel;bias
+R=diag([2,2,11,.3,.3,.5,1,1,1]);                  %Mesure: GNSS pos;Aruco pos;LP vel
 
 %Find initial conditions
 lp_linear_vel_NED=ENU2NEDeuler(lp_linear_vel(1,:)');
-x0=[aruco_pos(1,:)';lp_linear_vel_NED];
-%P0=[diag([2.3 2.4 7.5]),diag([.4 .4 1.2]);diag([.4 .4 1.2]),diag([.2 .2 .3])];
-P0=[diag([.15 .15 .24]),diag([.11 .11 .14]);diag([.11 .11 .14]),diag([.35 .35 .38])];
+%x0=[aruco_pos(1,:)';lp_linear_vel_NED];
+%P0=[diag([.15 .15 .24]),diag([.11 .11 .14]);diag([.11 .11 .14]),diag([.35 .35 .38])];
+x0=[aruco_pos(1,:)';lp_linear_vel_NED;0;-1;17];
+P0=diag([.3 .3 .5 .35 .35 .38 2 2 2]);
 
-kf = kalmanFilter(Q,R,x0,P0);
+kf = kalmanFilter2(Q,R,x0,P0);
 
-x_hat=zeros(6,length(aruco_time));
-P=zeros(36,length(aruco_time));
+%x_hat=zeros(6,length(aruco_time));
+x_hat=zeros(9,length(aruco_time));
+%P=zeros(36,length(aruco_time));
+P=zeros(81,length(aruco_time));
 x_hat(:,1)=x0;
 
 t_prev=uav_velocity_time(1);
@@ -125,10 +129,10 @@ end
 % Plot
 
 %Read out the variance
-var=zeros(6,length(P));
+var=zeros(9,size(P,2));
 
-for i =1:length(P)
-    var(:,i)=sqrt(diag(reshape(P(:,i),6,6)));
+for i =1:size(P,2)
+    var(:,i)=sqrt(diag(reshape(P(:,i),9,9)));
 end
 
 % Axes to plot, x=1, y=2, z=3
@@ -175,6 +179,24 @@ for ap=1:3
     hold off
 end
 
+figure(7)
+for ap=1:3
+    subplot(3,1,ap)
+    plot((uav_orient_time-t0)*1e-9,x_hat(ap+6,:))
+    hold on
+    if plot2sigma
+        plot((uav_orient_time-t0)*1e-9,x_hat(ap+6,:)+2*var(ap+6,:),'k-.')   %2-sigma bound
+        plot((uav_orient_time-t0)*1e-9,x_hat(ap+6,:)-2*var(ap+6,:),'k-.')   %2-sigma bound
+        legend('Kalman','2-sigma')
+    else
+        legend('Kalman')
+    end
+    if ap==1 
+        title('Bias GNSS UAV and LP')
+    end
+    ylabel(['Axis nr:', int2str(ap)])
+    hold off
+end
 %% Functions
 %i=20;
 %findCorrMeas(lp_pose_time(i),uav_pos_time,uav_position')
