@@ -2,7 +2,13 @@
 
 
 %% Initialize variables.
-filename = 'data/testData_take3.csv';
+if dataset==1
+    filename = 'data/testData_take1.csv';
+elseif dataset==2
+    filename = 'data/testData_take2.csv';
+else
+    filename = 'data/testData_take3.csv';
+end
 delimiter = ';';
 
 %% Format for each line of text:

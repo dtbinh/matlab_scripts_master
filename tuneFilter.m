@@ -31,7 +31,7 @@ R=diag([2,2,11,.3,.3,.5,1,1,1]);                  %Mesure: GNSS pos;Aruco pos;LP
 lp_linear_vel_NED=ENU2NEDeuler(lp_linear_vel(1,:)');
 %x0=[aruco_pos(1,:)';lp_linear_vel_NED];
 %P0=[diag([.15 .15 .24]),diag([.11 .11 .14]);diag([.11 .11 .14]),diag([.35 .35 .38])];
-x0=[aruco_pos(1,:)';lp_linear_vel_NED;0;-1;17];
+x0=[0;4;17;lp_linear_vel_NED;1;0;17];
 P0=diag([.3 .3 .5 .35 .35 .38 2 2 2]);
 
 kf = kalmanFilter2(Q,R,x0,P0);
@@ -136,7 +136,8 @@ for i =1:size(P,2)
 end
 
 % Axes to plot, x=1, y=2, z=3
-plot2sigma=1;
+plot2sigma=0;
+print2file=0;
 t0=uav_velocity_time(1);
 figure(5)
 for ap=1:3
@@ -148,15 +149,24 @@ for ap=1:3
     if plot2sigma
         plot((uav_orient_time-t0)*1e-9,x_hat(ap,:)+2*var(ap,:),'k-.')   %2-sigma bound
         plot((uav_orient_time-t0)*1e-9,x_hat(ap,:)-2*var(ap,:),'k-.')   %2-sigma bound
-        legend('Aruco','GNSS','Kalman','2-sigma')
+        if ap==1
+            legend('Aruco','GNSS','Kalman','2-sigma','Location','northwest','Orientation','horizontal')
+        end
     else
-        legend('Aruco','GNSS','Kalman')
+        if ap==1
+            legend('Aruco','GNSS','Kalman','Orientation','horizontal','Location','northwest')
+        end
     end
     if ap==1
-       title('Position LP-UAV')
+       title(sprintf('Position LP-UAV, dataset %i',dataset))
     end
     ylabel(['Axis nr:', int2str(ap)])
+    set(findall(gca, 'Type', 'Line'),'LineWidth',1.2);
     hold off
+end
+if print2file
+    figname=sprintf('Position_LP_UAV_dataset_%i',dataset);
+    print(figure(5),strcat('figures/',figname,'_plot'), '-depsc');
 end
 
 figure(6)
@@ -168,15 +178,24 @@ for ap=1:3
     if plot2sigma
         plot((uav_orient_time-t0)*1e-9,x_hat(ap+3,:)+2*var(ap+3,:),'k-.')   %2-sigma bound
         plot((uav_orient_time-t0)*1e-9,x_hat(ap+3,:)-2*var(ap+3,:),'k-.')   %2-sigma bound
-        legend('Measure','Kalman','2-sigma')
+        if ap==1
+            legend('Measure','Kalman','2-sigma','Location','northwest','Orientation','horizontal')
+        end
     else
-        legend('Measure','Kalman')
+        if ap==1
+            legend('Measure','Kalman','Location','northwest','Orientation','horizontal')
+        end
     end
     if ap==1 
-        title('Velocity LP') 
+        title(sprintf('Velocity LP, dataset %i',dataset))
     end
     ylabel(['Axis nr:', int2str(ap)])
+    set(findall(gca, 'Type', 'Line'),'LineWidth',1.2);
     hold off
+end
+if print2file
+    figname=sprintf('Velocity_LP_dataset_%i',dataset);
+    print(figure(6),strcat('figures/',figname,'_plot'), '-depsc');
 end
 
 figure(7)
@@ -187,15 +206,24 @@ for ap=1:3
     if plot2sigma
         plot((uav_orient_time-t0)*1e-9,x_hat(ap+6,:)+2*var(ap+6,:),'k-.')   %2-sigma bound
         plot((uav_orient_time-t0)*1e-9,x_hat(ap+6,:)-2*var(ap+6,:),'k-.')   %2-sigma bound
-        legend('Kalman','2-sigma')
+        if ap==1
+            legend('Kalman','2-sigma','Location','northwest','Orientation','horizontal')
+        end
     else
-        legend('Kalman')
+        if ap==1
+            legend('Kalman','Location','northwest','Orientation','horizontal')
+        end
     end
     if ap==1 
-        title('Bias GNSS UAV and LP')
+        title(sprintf('Bias GNSS UAV and LP, dataset %i',dataset))
     end
     ylabel(['Axis nr:', int2str(ap)])
+    set(findall(gca, 'Type', 'Line'),'LineWidth',1.2);
     hold off
+end
+if print2file
+    figname=sprintf('Bias_GNSS_UAV_LP_dataset_%i',dataset);
+    print(figure(7),strcat('figures/',figname,'_plot'), '-depsc');
 end
 %% Functions
 %i=20;

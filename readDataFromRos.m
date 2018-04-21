@@ -1,4 +1,6 @@
 clear all
+%Dataset to run
+dataset=2;      %1, 2 or 3
 run data/loadData.m    %Load the data from testData.csv in to workspace as testData
 addpath('./functions');
 
@@ -95,16 +97,23 @@ end
 %% Plot GNSS positions
 %deltaPos=lp_pos-uav_position;
 %Correct for altitude error
-lp_pos(:,3)=lp_pos(:,3);     %%%Error ca 16m
+lp_pos(:,3)=lp_pos(:,3);
 
-figure(4)
+figname=sprintf('GNSS_position_dataset_%i',dataset);
+fig(4)=figure('Name',figname);
 plot(lp_pos(:,2),lp_pos(:,1))
 hold on
 plot(uav_position(:,2),uav_position(:,1))
 hold off
+titlestr=sprintf("GNSS position relative to NED, dataset %i",dataset);
+title(titlestr)
 legend("LP","UAV")
-xlabel('East')
-ylabel('North')
+xlabel('East [m]')
+ylabel('North [m]')
+set(findall(gca, 'Type', 'Line'),'LineWidth',1.2);
+
+i=4;
+%print(fig(i),strcat('figures/',fig(i).Name,'_plot'), '-depsc');
 
 t0=uav_velocity_time(1);
 if plotd=="HEIGHT"

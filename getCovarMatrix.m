@@ -10,9 +10,9 @@ filenames={'arucoData_150_0.csv','arucoData_185_45.csv','arucoData_366_45.csv','
 %filenames={'arucoData_150_0.csv','arucoData_790_0.csv','arucoData_1780_0.csv','arucoData_2640_0.csv'};
 i=1;
 
-plotvar=1;
+plotvar=0;
 plotdist=0;
-ploterrorz=0;
+ploterrorz=1;
 
 for fname=filenames
     [time_stamp,position,orientation,mesDist,mesAng]=getArucoDataFromFile(fname{1});
@@ -41,12 +41,13 @@ for fname=filenames
     if ploterrorz
         rel=time_stamp*0+mesDist/100;
         tagString2=sprintf('Error on distance %2.2d',mesDist/100);
-        
+
         figure
         plot(time_stamp,position(:,3)-rel)
-        %hold on
-        %plot(time_stamp,rel)
-        %hold off
+        hold on
+        mean_=mean(position(:,3)-rel);
+        plot(time_stamp,time_stamp*0+mean_)
+        hold off
         title(tagString2);
     end
 
