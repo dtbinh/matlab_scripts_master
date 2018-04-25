@@ -31,7 +31,8 @@ R=diag([2,2,11,.3,.3,.5,1,1,1]);                  %Mesure: GNSS pos;Aruco pos;LP
 lp_linear_vel_NED=ENU2NEDeuler(lp_linear_vel(1,:)');
 %x0=[aruco_pos(1,:)';lp_linear_vel_NED];
 %P0=[diag([.15 .15 .24]),diag([.11 .11 .14]);diag([.11 .11 .14]),diag([.35 .35 .38])];
-x0=[0;4;17;lp_linear_vel_NED;1;0;17];
+%x0=[0;4;17;lp_linear_vel_NED;1;0;17];
+x0=[0;4;17;0;0;0;1;0;17];
 P0=diag([.3 .3 .5 .35 .35 .38 2 2 2]);
 
 kf = kalmanFilter2(Q,R,x0,P0);

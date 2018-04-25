@@ -46,11 +46,8 @@ classdef kalmanFilter2 < handle
             
             obj.updateFilter();
         end
-    %end
-    
-    %methods(Access=private)
+
         function updateFilter(obj)
-            
             % Compute Kalman gain:
             K=obj.P_pri*transpose(obj.H)*inv(obj.H*obj.P_pri*transpose(obj.H)+obj.R);
 

@@ -1,6 +1,6 @@
 clear all
 %Dataset to run
-dataset=2;      %1, 2 or 3
+dataset=3;      %1, 2 or 3
 run data/loadData.m    %Load the data from testData.csv in to workspace as testData
 addpath('./functions');
 

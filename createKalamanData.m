@@ -1,6 +1,10 @@
 clear all
 
-Q=diag([.3,.3,.6,1,1,1,.2,.2,.2,1,1,1]);
+Q=diag([.01,.01,.01,.1,.1,.1,.00001,.00001,.001]);          %State: pos;vel;bias
+R=diag([2,2,11,.3,.3,.5,1,1,1]);                  %Mesure: GNSS pos;Aruco pos;LP vel
+
+x0=[0;4;17;0;0;0;1;0;17];
+P0=diag([.3 .3 .5 .35 .35 .38 2 2 2]);
 
 %% Write to file
 
@@ -10,6 +14,9 @@ fname='kalmanFilter.yaml';
 fileId=fopen(fname,'w');
 
 printMat('Q',fileId,Q);
+printMat('R',fileId,R);
+printMat('x0',fileId,x0);
+printMat('P0',fileId,P0);
 
 fclose(fileId);
 
