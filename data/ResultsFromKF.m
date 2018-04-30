@@ -1,7 +1,13 @@
 %Import data from ROS node
+%take nr
+take=1;
+%test name
+tname='aruco_and_navigation_static';
+path=strcat(tname,'/take_',num2str(take),'/');
 
+%/home/rosuser/Projects/matlab_scripts_master/data/aruco_and_navigation_static/take_1
 %% Aruco tag
-t = readtable('KfArUco.csv');
+t = readtable(strcat(path,'KfArUco.csv'),'Delimiter',';');
 t.Var3=[];
 %head(t,5)
 
@@ -13,7 +19,7 @@ end
 
 clear t i
 %% Landing pad
-t = readtable('KfLandingPad.csv');
+t = readtable(strcat(path,'KfLandingPad.csv'),'Delimiter',';');
 t.Var4=[];
 %head(t,5)
 
@@ -28,7 +34,7 @@ end
 clear t i
 
 %% Kalman filter states
-t = readtable('KfStates.csv');
+t = readtable(strcat(path,'KfStates.csv'),'Delimiter',';');
 t.Var4=[];
 %head(t,5)
 

@@ -106,7 +106,6 @@ for i=2:length(aruco_time)
             
             %Add the translation vector between aruco tag an IMU on the LP
             p_li_l=[0.85;-.59;-.50];
-            %p_li_l=[0;-0;-0];
             R_li = rotMatZYX([0;0;-pi/2]);        %Rotation from aruco tag to IMU
             R_in = quat2rotm(lp_orientation_NED(i,:));   %Rotate from IMU to NED
             lp_pos_=lp_pos(i,:)'-R_in*R_li*p_li_l;

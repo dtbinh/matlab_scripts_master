@@ -1,10 +1,13 @@
 clear all
 
-Q=diag([.01,.01,.01,.1,.1,.1,.00001,.00001,.001]);          %State: pos;vel;bias
-R=diag([2,2,11,.3,.3,.5,1,1,1]);                  %Mesure: GNSS pos;Aruco pos;LP vel
+%Q=diag([.01,.01,.01,.1,.1,.1,.00001,.00001,.001]);          %State: pos;vel;bias
+%R=diag([2,2,11,.3,.3,.5,1,1,1]);                  %Mesure: GNSS pos;Aruco pos;LP vel
 
-x0=[0;4;17;0;0;0;1;0;17];
-P0=diag([.3 .3 .5 .35 .35 .38 2 2 2]);
+Q=diag([.041,.041,.041,.000001,.000001,.000001,.0001,.0001,.01]);          %State: pos;vel;bias
+R=diag([2,2,11,.0006,.0006,.0025,10000,10000,10000]);                  %Mesure: GNSS pos;Aruco pos;LP vel
+
+x0=[0;4;17;0;0;0;0;0;0];
+P0=diag([.01 .01 .01 .35 .35 .38 .01 .01 .01]);
 
 %% Write to file
 
