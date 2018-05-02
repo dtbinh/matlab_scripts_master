@@ -4,7 +4,7 @@ clear all
 %R=diag([2,2,11,.3,.3,.5,1,1,1]);                  %Mesure: GNSS pos;Aruco pos;LP vel
 
 Q=diag([.041,.041,.041,.000001,.000001,.000001,.0001,.0001,.01]);          %State: pos;vel;bias
-R=diag([2,2,11,.0006,.0006,.0025,10000,10000,10000]);                  %Mesure: GNSS pos;Aruco pos;LP vel
+R=diag([2,2,11,.006,.006,.025,10000,10000,10000]);                  %Mesure: GNSS pos;Aruco pos;LP vel
 
 x0=[0;4;17;0;0;0;0;0;0];
 P0=diag([.01 .01 .01 .35 .35 .38 .01 .01 .01]);

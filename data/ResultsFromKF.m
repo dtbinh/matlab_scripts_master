@@ -1,6 +1,6 @@
 %Import data from ROS node
 %take nr
-take=1;
+take=3;
 %test name
 tname='aruco_and_navigation_static';
 path=strcat(tname,'/take_',num2str(take),'/');
