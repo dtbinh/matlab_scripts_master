@@ -28,8 +28,8 @@ simlength=40; %s
 %tune4=[10];    %r 80, 1520     %10
 
 for i=1:1
-    %[q_t,u_t]=carSim3(0.1,simlength);
-    [q_t,u_t]=carSim2(0.1,simlength);
+    [q_t,u_t]=carSim3(0.1,simlength);  %Random walk
+    %[q_t,u_t]=carSim2(0.1,simlength);  %Line
     plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,i);
 end
 
@@ -139,6 +139,7 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,ii)
     
     figname=['randWalk' num2str(ii)];
     title(figname)
+    legend('Landing Pad','Optimal control','Parallel navigation');
     %Save the figure
     if 1==0
         saveas(gcf,['figures/' figname],'epsc')
