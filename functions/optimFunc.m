@@ -40,7 +40,8 @@ if flag == 1
         k=k+1;
     end
 else
-    error('No optimal solution found')
+    %error('No optimal solution found')
+    warning('No optimal solution found')
 end
 
     function y = linearFunc(ss,se,N,i)

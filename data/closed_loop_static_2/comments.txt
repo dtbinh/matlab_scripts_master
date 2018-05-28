@@ -1,0 +1,10 @@
+take_1;landing_on_olav.bag;camera
+take_2;landing_with_camera.bag;camera on tag, huge bias!!
+take_3;record_2016-02-11-17-31-37.bag;Takeoff and landing
+take_4;bag_6ms_gain5_take_1.bag;huge bias
+take_5;bag_6ms_gain3.bag;huge bias
+take_6;record_2016-02-11-17-29-57.bag;With cam, huge bias
+take_7;record_2016-02-11-17-31-08.bag;huge bias
+take_8;record_2016-02-11-17-32-20.bag;cam, huge bias
+take_9;record_2016-02-11-17-35-55.bag;bias
+take_10;record_2016-02-11-17-51-06.bag

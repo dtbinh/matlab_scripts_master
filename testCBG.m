@@ -13,7 +13,7 @@ q_u1=zeros(4,length(t));
 q_u1(:,1)=[xu0;uu0];     %Initial conditions
 
 v_c_max=0.9;             %Mav vel UAV in m/s
-cbgc=3;
+cbgc=1;
 
 for i=1:length(t)-1
     % Constatnt bearing guidance control law for UAV 2

@@ -6,13 +6,14 @@ addpath('./functions/')
 
 % Tuning parmaeters
 q1=1.3;       %pos error
+%q1=20;       %pos error
 q2=500;       %Vel error
 r=0;        %uav vel
 N = 10;     %Prediction length
 cbgc=16;    
 
 dt=.5;
-simlength=40; %s
+simlength=30; %s
 
 %% Simulate a car using the non slipping kinematic car method
 %q=[x;y;theta,phi]
@@ -27,8 +28,9 @@ simlength=40; %s
 %tune3=[50];  %q2 1500, 0       %10
 %tune4=[10];    %r 80, 1520     %10
 
-for i=1:1
-    [q_t,u_t]=carSim3(0.1,simlength);  %Random walk
+for i=1:3
+    %[q_t,u_t]=carSim3(0.1,simlength);  %Random walk
+    [q_t,u_t]=carSim5(0.1,simlength);   %Line, only constant vel 
     %[q_t,u_t]=carSim2(0.1,simlength);  %Line
     plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,i);
 end
@@ -74,12 +76,12 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,ii)
 
     %% Simulate the MPC Controlled UAV 
     %p = drawCarDrone([-50 250 -300 100]);
-    xmin=min([q_t(1,:),xu0(1)])-50;
-    xmax=max([q_t(1,:),xu0(1)])+50;
-    ymin=min([q_t(2,:),xu0(2)])-50;
-    ymax=max([q_t(2,:),xu0(2)])+50;
+    xmin=min([q_t(1,:),xu0(1)])-10;
+    xmax=max([q_t(1,:),xu0(1)])+10;
+    ymin=min([q_t(2,:),xu0(2)])-15;
+    ymax=max([q_t(2,:),xu0(2)])+10;
     p = drawCarDrone([xmin, xmax, ymin, ymax],2);
-    set(gcf,'units','normalized','outerposition',[0 0 1 1])
+    set(gcf,'units','normalized','outerposition',[0 0 .27 .75])
     speed=15;
 
     dti=.1;
@@ -94,7 +96,19 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,ii)
     %Plotting
     u=zeros(2,length(ti));
 
-    type='onlyVel';
+    if ii==1
+        type='linear';
+    elseif ii==2
+        type='quadratic';
+    else
+        type='exponential';
+    end
+    
+    %type='onlyVel';
+    %type='linear';
+    %type='quadratic';
+    %type='exponential';
+    %type='none';
 
     for i=1:length(ti)
         % MPC controller for UAV 1
@@ -129,7 +143,7 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,ii)
 
         %Plot simulation
         p.setPose(q_t(:,i),[[q_u1(1:2,i);0;0],[q_u2(1:2,i);0;0],[q_u3(1:2,i);0;0]]);
-        pause(dti/speed);
+        %pause(dti/speed);
         
         u(:,i)=[norm(u_out1);norm(u_out2)];
     end
@@ -137,13 +151,14 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,ii)
     % Title the figure
     %figname=['type=' type ', N=' num2str(N) ' cbgc=' num2str(cbgc) ', q1=' num2str(q1) ', q2=' num2str(q2) ' and r=' num2str(r)];
     
-    figname=['randWalk' num2str(ii)];
-    title(figname)
-    legend('Landing Pad','Optimal control','Parallel navigation');
+    %figname=['randWalk' num2str(ii)];
+    %figname='Constant Velocity';
+    %title(figname)
+    legend('Landing Pad','Model Predictive','Parallel Navigation','Location','northeast');
     %Save the figure
     if 1==0
-        saveas(gcf,['figures/' figname],'epsc')
-        close
+        saveas(gcf,'figures/constant_vel_150_0','epsc')
+        %close
     end
     
     % Velcity plot

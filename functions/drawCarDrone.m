@@ -77,12 +77,12 @@ classdef drawCarDrone < handle
              %Create the trace
              %Create the transforms
              %Create the car and UAV
-             obj.Traces(1) = animatedline('Parent', ax, 'Color', colorCar);
+             obj.Traces(1) = animatedline('Parent', ax, 'Color', colorCar,'LineWidth',1.5);
              obj.Car(1) = hgtransform('Parent', ax);
              drawCar(obj,obj.Car(1),lengthCar,colorCar);
              
              for u=1:obj.numUav
-                obj.Traces(u+1) = animatedline('Parent', ax, 'Color', colorUav(u));
+                obj.Traces(u+1) = animatedline('Parent', ax, 'Color', colorUav(u),'LineWidth',1.5);
                 obj.Uav(u) = hgtransform('Parent', ax);
                 drawUav(obj,obj.Uav(u),lengthUav,colorUav(u));
              end
