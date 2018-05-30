@@ -31,6 +31,7 @@ function [q_t, v_t] = carSim3(dt,simlength)
         q_t(:,i+1)=q_t(:,i)+q_dot_t*dt;
         v_t(:,i)=q_dot_t(1:2);            %Save the target velocity vector
     end
+    v_t(:,end)=v_t(:,end-1);
 
 
     function q_dot = vehicle(q,u)

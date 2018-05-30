@@ -1,16 +1,15 @@
 close all
 %Import data from ROS node
 %take nr
-take=1;
+take=8;
 %test name
 %tname='aruco_and_navigation_static';
 %tname='closed_loop_static_1';
-tname='closed_loop_static_2';
+%tname='closed_loop_static_2';
+tname='closed_loop_dynamic_1';
 path=strcat(tname,'/take_',num2str(take),'/');
 
 %/home/rosuser/Projects/matlab_scripts_master/data/aruco_and_navigation_static/take_1
-
-addpath('../functions/MrcJkb-expandaxes-27975d8')
 %% Aruco tag
 t = readtable(strcat(path,'KfArUco.csv'),'Delimiter',';');
 t.Var3=[];
@@ -72,7 +71,7 @@ function plotKfData2sigma(figure_nr, measured_1_t ,measured_1, measured_2_t ,mea
     %fontname='Linux Libertine O';
     %set(0,'DefaultAxesFontName',fontname,'DefaultTextFontName',fontname);
     tstart=0;
-    tend=70;
+    tend=110;
     f=figure(figure_nr);
     
     defColor=get(gca,'colororder');
@@ -222,14 +221,14 @@ function plotzoom(figure_nr, measured_1_t ,measured_1, measured_2_t ,measured_2,
 
 end
 
-AX = findobj(gcf,'type','axes');
-AX(1).YAxis.Limits=[-.1 .1];
-AX(2).YAxis.Limits=[-.1 .1];
-AX(3).YAxis.Limits=[-.1 .1];
-AX(1).YAxis.Label.String='Down [m/s]';
-AX(2).YAxis.Label.String='East [m/s]';
-AX(3).YAxis.Label.String='North [m/s]';
-pos = AX(1).Position;
-AX(1).Position(1) = pos(1)+.01;
-AX(2).Position(1) = pos(1)+.01;
-AX(3).Position(1) = pos(1)+.01;
+% AX = findobj(gcf,'type','axes');
+% AX(1).YAxis.Limits=[-.1 .1];
+% AX(2).YAxis.Limits=[-.1 .1];
+% AX(3).YAxis.Limits=[-.1 .1];
+% AX(1).YAxis.Label.String='Down [m/s]';
+% AX(2).YAxis.Label.String='East [m/s]';
+% AX(3).YAxis.Label.String='North [m/s]';
+% pos = AX(1).Position;
+% AX(1).Position(1) = pos(1)+.01;
+% AX(2).Position(1) = pos(1)+.01;
+% AX(3).Position(1) = pos(1)+.01;

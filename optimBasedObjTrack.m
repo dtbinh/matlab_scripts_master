@@ -1,6 +1,6 @@
 
 clear all
-%close all
+close all
 clc
 addpath('./functions/')
 
@@ -8,8 +8,8 @@ addpath('./functions/')
 q1=1.3;       %pos error
 %q1=20;       %pos error
 q2=500;       %Vel error
-r=0;        %uav vel
-N = 10;     %Prediction length
+r=0;          %uav vel
+N = 10;       %Prediction length
 cbgc=16;    
 
 dt=.5;
@@ -40,7 +40,13 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,ii)
 
     %% Inital conditions
     %UAV
-    xu0=[150; -150];    %Init pos
+    N=ii*10;
+    
+    %if ii==1
+        xu0=[150; -150];    %Init pos
+    %else
+    %    xu0=[150; -50];    %Init pos
+    %end
     uu0=[0; -0];        %Init vel
 
     % Landing pad
@@ -52,9 +58,12 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,ii)
     u0=[ul0;uu0];
 
     %% Define the dynamics and control parameters
-    A = diag([1,1,0,0]);
-    B = [-eye(2)*dt,eye(2)*dt;-eye(2),eye(2)];
+    %A = diag([1,1,0,0]);
+    %B = [-eye(2)*dt,eye(2)*dt;-eye(2),eye(2)];
 
+    A = [eye(2), eye(2)*dt;zeros(2),zeros(2)];
+    B = [zeros(2),zeros(2);-eye(2),eye(2)];
+    
     %Tuuning parameters
     Q = diag([q1,q1,q2,q2]);
     R = r*diag([0,0,1,1]);
@@ -74,7 +83,7 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,ii)
     du_l = [-inf;-inf;-a_u_max*dt*ones(2,1)];       % Lower bounds on delta u
     du_u = [inf;inf;a_u_max*dt*ones(2,1)];          % Upper bounds on delta u
 
-    %% Simulate the MPC Controlled UAV 
+    %% Simulate the MPC Controlled UAV
     %p = drawCarDrone([-50 250 -300 100]);
     xmin=min([q_t(1,:),xu0(1)])-10;
     xmax=max([q_t(1,:),xu0(1)])+10;
@@ -82,6 +91,7 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,ii)
     ymax=max([q_t(2,:),xu0(2)])+10;
     p = drawCarDrone([xmin, xmax, ymin, ymax],2);
     set(gcf,'units','normalized','outerposition',[0 0 .27 .75])
+    %set(gcf,'units','normalized')
     speed=15;
 
     dti=.1;
@@ -95,15 +105,8 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,ii)
     
     %Plotting
     u=zeros(2,length(ti));
-
-    if ii==1
-        type='linear';
-    elseif ii==2
-        type='quadratic';
-    else
-        type='exponential';
-    end
     
+    type='linear';
     %type='onlyVel';
     %type='linear';
     %type='quadratic';
@@ -114,7 +117,7 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,ii)
         % MPC controller for UAV 1
         if mod(ti(i),dt)==0 %% Run the optimization
             u_l(1:2) = u_t(:,i);
-            u_u(1:2) = u_t(:,i);
+            u_u(1:2) = u_t(:,i); 
             [x_uav,u_uav]=optimFunc(A,B,Q,R,x0,u0,x_l,x_u,u_l,u_u,du_l,du_u,N,type);
             u_out1=u_uav(3:4,1);
         end
@@ -127,7 +130,7 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,ii)
 
         %Simulate quadcopter 1
         q_dot_u1=quadcopter(q_u1(:,i),u_out1,8);
-        q_u1(:,i+1)=q_u1(:,i)+q_dot_u1*dti;
+        q_u1(:,i+1)=q_u1(:,i)+q_dot_u1*dti;  
 
         %Simulate quadcopter 2
         q_dot_u2=quadcopter(q_u2(:,i),u_out2,8);
@@ -154,16 +157,47 @@ function a = plotController(q1,q2,r,N,dt,simlength,q_t,u_t,cbgc,ii)
     %figname=['randWalk' num2str(ii)];
     %figname='Constant Velocity';
     %title(figname)
-    legend('Landing Pad','Model Predictive','Parallel Navigation','Location','northeast');
+    legend('Landing Pad','Optimal Guidance','Parallel Navigation Guidance','Location','northeast');
     %Save the figure
     if 1==0
-        saveas(gcf,'figures/constant_vel_150_0','epsc')
+        saveas(gcf,'figures/constant_vel_two_init','epsc')
         %close
     end
     
-    % Velcity plot
-    %plot(ti,u)
-end
+    %Velcity plot
+    vel_LP=ti*0;
+    vel_CB=ti*0;
+    vel_MPC=ti*0;
+    for i=1:length(ti)
+        vel_LP(i)=norm(u_t(:,i));
+        vel_CB(i)=norm(q_u2(3:4,i));
+        vel_MPC(i)=norm(q_u1(3:4,i));
+    end
+ 
+    figure;
+    set(gcf,'units','normalized','outerposition',[0 0 .27 .75/2])
+
+    plot(ti,vel_LP,'b',ti,vel_MPC,'r',ti,vel_CB,'g','LineWidth',1.5)
+    xlabel('Time [s]');
+    ylabel('Velocity [m/s]');
+    legend('Landing Pad','Optimal Guidance','Parallel Navigation Guidance','Location','southeast');
+    if ii==1
+        %title('Initial position [150,-150]');
+    else
+        %title('Initial position [150,-50]');
+        % Remove whitespace
+        %sr=.04;
+        %su=.03;
+        %AX = findobj(gcf,'type','axes');
+        %pos = AX(1).Position;
+        %for i=1:2
+        %    AX(i).Position(1) = pos(1)-sr;
+        %    AX(i).Position(2) = pos(2)-su+(i-1)*(1/2-.5*su);
+        %    AX(i).Position(3) = pos(3)+2*sr;
+        %    AX(i).Position(4) = pos(4)+2*su;
+        %end
+    end
+end   
 
 %% Functions
 function q_dot = quadcopter(q,v_d,kp)
