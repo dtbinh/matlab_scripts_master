@@ -1,12 +1,13 @@
 close all
 %Import data from ROS node
 %take nr
-take=8;
+take=1;
 %test name
 %tname='aruco_and_navigation_static';
 %tname='closed_loop_static_1';
 %tname='closed_loop_static_2';
-tname='closed_loop_dynamic_1';
+tname='closed_loop_static_3';
+%tname='closed_loop_dynamic_1';
 path=strcat(tname,'/take_',num2str(take),'/');
 
 %/home/rosuser/Projects/matlab_scripts_master/data/aruco_and_navigation_static/take_1
@@ -71,7 +72,7 @@ function plotKfData2sigma(figure_nr, measured_1_t ,measured_1, measured_2_t ,mea
     %fontname='Linux Libertine O';
     %set(0,'DefaultAxesFontName',fontname,'DefaultTextFontName',fontname);
     tstart=0;
-    tend=110;
+    tend=60;
     f=figure(figure_nr);
     
     defColor=get(gca,'colororder');
@@ -129,11 +130,20 @@ function plotKfData2sigma(figure_nr, measured_1_t ,measured_1, measured_2_t ,mea
     end
     legend(sp(1),'boxoff')
     %lgd.Position=lgd.Position+[0,.025,0,0];
-    set(gcf,'units','normalized','outerposition',[0 0 .5 .75])
+    if figure_nr==1
+        set(gcf,'units','normalized','outerposition',[0 0 .5 .75])
+    else
+        set(gcf,'units','normalized','outerposition',[0 0 .5/2 .75/2])
+    end
     
     %Remove whitespace
-    sr=.06;
-    su=.03;
+    if figure_nr==1
+        sr=.06;
+        su=.03;
+    else
+        sr=.02;
+        su=.01;
+    end
     AX = findobj(gcf,'type','axes');
     pos = AX(1).Position;
     for i=1:3
